@@ -23,8 +23,8 @@ series across every voltage level, which makes it useful for:
 - Time series and study case analysis
 
 > [!WARNING]
-> **Work in progress.** Reading any published benchmark grid by SimBench code works.
-> Converting to PowerModels is not implemented yet.
+> **Work in progress.** Reading any published benchmark grid by SimBench code and
+> converting it to PowerModels works. Profiles and study cases are not implemented yet.
 
 ## Status
 

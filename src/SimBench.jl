@@ -12,13 +12,13 @@ IEE. This package is a Julia port of the reference implementation at
 The dataset itself is licensed under the ODbL; this package's code is BSD-3-Clause.
 
 !!! note "Work in progress"
-    Dataset location and the table inventory are in place. Reading grids and converting
-    them to PowerModels is not implemented yet.
+    Reading any published benchmark grid and converting it to PowerModels network data
+    works. Applying load and generation profiles and study cases is not implemented yet.
 
 # Dataset location
 
-Automatic download is not implemented yet, so point the package at a local copy of the
-dataset:
+The dataset downloads itself on first use as a lazy `Pkg` artifact. To use a local copy
+instead:
 
 ```julia
 SimBench.set_data_dir!("/path/to/simbench/simbench/networks")
