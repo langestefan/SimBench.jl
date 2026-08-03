@@ -8,7 +8,9 @@ Notable changes to SimBench.jl are recorded here. The format follows
 
 ### Added
 
-- `SimBenchGrid` and `read_grid`, reading a whole scenario into `DataFrame`s
+- Grid extraction by SimBench code, validated against the reference implementation over
+  19 codes spanning every voltage level: same subnets, row counts and element ids
+- `SimBenchGrid` and `read_grid`, reading any published grid into `DataFrame`s
 - `SimBenchCode` for parsing, rendering and enumerating SimBench codes, cross-checked
   against the reference implementation over all 246 published codes
 - CSV readers with the column schema of all 20 fixed tables, `NULL` handling and

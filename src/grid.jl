@@ -67,10 +67,9 @@ Base.show(io::IO, grid::SimBenchGrid) =
 
 Read the grid selected by `code`, which may be a [`SimBenchCode`](@ref) or a code string.
 
-!!! note "Only complete-dataset codes for now"
-    Extracting an individual benchmark grid, e.g. `1-MVLV-urban-all-0-sw`, needs the
-    subnet extraction that is not implemented yet. Until then only `complete_data`
-    codes are accepted, which read a whole scenario unfiltered.
+A `complete_data` code reads a whole scenario unfiltered. Any other code reads the
+scenario and then extracts the selected grid from it, so reading several grids of one
+scenario costs a full parse each time.
 
 # Keywords
 - `nrows`: read at most this many rows of each profile table.
@@ -78,6 +77,7 @@ Read the grid selected by `code`, which may be a [`SimBenchCode`](@ref) or a cod
 
 # Examples
 ```julia
+grid = SimBench.read_grid("1-MVLV-urban-all-0-sw")
 grid = SimBench.read_grid("1-complete_data-mixed-all-0-sw")
 ```
 """
@@ -85,20 +85,15 @@ function read_grid(
         code::SimBenchCode; nrows::Union{Nothing, Integer} = nothing,
         input_path::Union{Nothing, AbstractString} = nothing,
     )
-    is_complete_data(code) || throw(
-        ArgumentError(
-            "extracting individual grids is not implemented yet, so \"$(string(code))\" " *
-                "cannot be read. Use a complete_data code such as " *
-                "\"$(string(complete_data_code(code.scenario)))\" to read a whole scenario.",
-        ),
-    )
-
     dir = if input_path === nothing
         scenario_path(code.scenario; version = code.version)
     else
         input_path
     end
-    return SimBenchGrid(code, read_tables(dir; nrows))
+
+    tables = read_tables(dir; nrows)
+    is_complete_data(code) || (tables = extract_tables(tables, code))
+    return SimBenchGrid(code, tables)
 end
 
 read_grid(code::AbstractString; kwargs...) = read_grid(SimBenchCode(code); kwargs...)

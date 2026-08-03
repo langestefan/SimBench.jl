@@ -1,20 +1,10 @@
 using DataFrames: nrow
 
 @testset "grid" begin
-    @testset "unsupported codes" begin
-        # Extraction of individual grids is not implemented, so those codes are refused
-        # with a message pointing at the complete_data alternative.
-        err = try
-            SimBench.read_grid("1-MVLV-urban-all-0-sw")
-            nothing
-        catch e
-            e
-        end
-        @test err isa ArgumentError
-        @test occursin("not implemented yet", err.msg)
-        @test occursin("1-complete_data-mixed-all-0-sw", err.msg)
-
-        @test_throws ArgumentError SimBench.read_grid("1-EHVHVMVLV-mixed-all-0-sw")
+    @testset "malformed codes" begin
+        # A code that cannot be parsed is refused before any file is touched.
+        @test_throws ArgumentError SimBench.read_grid("not-a-code")
+        @test_throws ArgumentError SimBench.read_grid("1-MVLV-urban-all-x-sw")
     end
 
     @testset "reading" begin

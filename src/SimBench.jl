@@ -37,6 +37,7 @@ include("data_source.jl")
 include("codes.jl")
 include("voltlvl.jl")
 include("io.jl")
+include("extract.jl")
 include("grid.jl")
 
 end # module

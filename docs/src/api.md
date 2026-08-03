@@ -20,6 +20,19 @@ SimBench.read_grid
 SimBench.scenario
 ```
 
+## Grid extraction
+
+```@docs
+SimBench.relevant_subnets
+SimBench.extract_tables
+SimBench.extract_table
+SimBench.hv_subnet_of
+SimBench.lv_subnets_of
+SimBench.bus_bus_switch_rows
+SimBench.GRID_NUMBERS
+SimBench.TWO_SIDED_TABLES
+```
+
 ## SimBench codes
 
 ```@docs

@@ -23,9 +23,8 @@ series across every voltage level, which makes it useful for:
 - Time series and study case analysis
 
 > [!WARNING]
-> **Work in progress.** Reading a whole scenario into a `SimBenchGrid` works.
-> Extracting an individual benchmark grid by SimBench code, and converting to
-> PowerModels, are not implemented yet.
+> **Work in progress.** Reading any published benchmark grid by SimBench code works.
+> Converting to PowerModels is not implemented yet.
 
 ## Status
 
@@ -33,7 +32,7 @@ series across every voltage level, which makes it useful for:
 | ------------------------------------------- | ------ |
 | Dataset location and table inventory | ✅ |
 | CSV parsing, SimBench codes, `SimBenchGrid` | ✅ |
-| Grid extraction by SimBench code | ⬜ |
+| Grid extraction by SimBench code | ✅ |
 | Switch and auxiliary node resolution | ⬜ |
 | PowerModels conversion | ⬜ |
 | Profiles and study cases | ⬜ |
@@ -92,8 +91,16 @@ precedence over it. Tests that need the dataset skip themselves when it is not c
 Scenario 0 is the present-day grid. Scenarios 1 and 2 project storage and HVDC build-out
 onto it, and scenario 2 carries 6,533 storage units, more than it has renewable generators.
 
-Individual benchmark grids are selected from this complete dataset by *SimBench code*, for
-example `1-MVLV-urban-all-0-sw`.
+Individual benchmark grids are selected from this complete dataset by *SimBench code*:
+
+```julia
+julia> grid = SimBench.read_grid("1-MVLV-urban-all-0-sw")
+SimBenchGrid("1-MVLV-urban-all-0-sw")
+  Coordinates   10850 rows
+  ExternalNet       1 rows
+  Line          10328 rows
+  ...
+```
 
 ## Design
 
