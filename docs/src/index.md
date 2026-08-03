@@ -24,6 +24,9 @@ using Pkg
 Pkg.add(url = "https://github.com/langestefan/SimBench.jl")
 ```
 
+New here? The [tutorial](tutorial.md) walks through the package end to end, from
+picking a grid to solving its power flow through the year.
+
 ## Dataset location
 
 The dataset downloads itself on first use, as a lazy `Pkg` artifact, so installing the

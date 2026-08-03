@@ -15,6 +15,7 @@ makedocs(;
     ),
     pages = [
         "Home" => "index.md",
+        "Tutorial" => "tutorial.md",
         "API" => "api.md",
         "Contributing" => "contributing.md",
     ],

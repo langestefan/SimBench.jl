@@ -1,11 +1,18 @@
 [deps]
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 DocumenterVitepress = "4710194d-e776-4893-9690-8d956a29c365"
+LiveServer = "16fef848-5104-11e9-1b77-fb7a48bbb589"
+PowerModels = "c36e90e8-916a-50a6-bd94-075b64ef4655"
 SimBench = "32dbf506-5fe2-461d-9bb1-ec20229b5bac"
 
 [sources]
 SimBench = {path = ".."}
 
 [compat]
+DataFrames = "1"
+Dates = "1"
 Documenter = "1"
 DocumenterVitepress = "0.2, 0.3"
+PowerModels = "0.21"
