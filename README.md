@@ -1,35 +1,39 @@
 # SimBench.jl
 
-[![CI](https://github.com/langestefan/SimBench.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/langestefan/SimBench.jl/actions/workflows/CI.yml)
-[![Docs](https://img.shields.io/badge/docs-dev-blue.svg)](https://langestefan.github.io/SimBench.jl/dev/)
-[![License: BSD-3](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](LICENSE)
-[![Data: ODbL](https://img.shields.io/badge/Data-ODbL-brightgreen.svg)](https://opendatacommons.org/licenses/odbl/)
+[![Development documentation](https://img.shields.io/badge/docs-dev-blue.svg)](https://langestefan.github.io/SimBench.jl/dev/)
 
-Read the [SimBench](https://simbench.net) benchmark grid dataset and convert it to
-[PowerModels.jl](https://github.com/lanl-ansi/PowerModels.jl) network data.
+[![Test workflow status](https://github.com/langestefan/SimBench.jl/actions/workflows/Test.yml/badge.svg?branch=main)](https://github.com/langestefan/SimBench.jl/actions/workflows/Test.yml?query=branch%3Amain)
+[![Coverage](https://codecov.io/gh/langestefan/SimBench.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/langestefan/SimBench.jl)
+[![Lint workflow Status](https://github.com/langestefan/SimBench.jl/actions/workflows/Lint.yml/badge.svg?branch=main)](https://github.com/langestefan/SimBench.jl/actions/workflows/Lint.yml?query=branch%3Amain)
+[![Docs workflow Status](https://github.com/langestefan/SimBench.jl/actions/workflows/Docs.yml/badge.svg?branch=main)](https://github.com/langestefan/SimBench.jl/actions/workflows/Docs.yml?query=branch%3Amain)
+[![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
+[![Code license: BSD-3](https://img.shields.io/badge/code-BSD--3--Clause-blue.svg)](LICENSE)
+[![Data license: ODbL](https://img.shields.io/badge/data-ODbL-brightgreen.svg)](https://opendatacommons.org/licenses/odbl/)
 
-SimBench is a set of German EHV/HV/MV/LV benchmark grids with matched load and generation
-time series, developed by University of Kassel, TU Dortmund, RWTH Aachen and Fraunhofer
-IEE. This package is a Julia port of the [reference
-implementation](https://github.com/e2nIEE/simbench), which targets pandapower.
+SimBench.jl reads the [SimBench](https://simbench.net) benchmark grid dataset and converts
+it to [PowerModels.jl](https://github.com/lanl-ansi/PowerModels.jl) network data, so that
+published German benchmark grids can be solved with the Julia power-system stack.
+
+SimBench provides realistic, openly licensed grids with matched load and generation time
+series across every voltage level, which makes it useful for:
+
+- Grid planning and expansion studies
+- Power flow and optimal power flow benchmarking
+- Distributed generation and storage integration
+- Time series and study case analysis
 
 > [!WARNING]
 > **Work in progress — phase 1 of 8.** Package skeleton and dataset location only.
-> Reading grids and converting them to PowerModels is not implemented yet.
-> See [`PLAN.md`](PLAN.md) for the roadmap.
+> Reading grids and converting them to PowerModels is not implemented yet. See
+> [`PLAN.md`](PLAN.md) for the roadmap.
 
-## Status
+## Acknowledgement
 
-| Phase | | |
-|---|---|---|
-| 1 | Skeleton, CI, dataset location | ✅ |
-| 2 | CSV parsing, SimBench codes, `SimBenchGrid` | ⬜ |
-| 3 | Subnet extraction by SimBench code | ⬜ |
-| 4 | Switch and auxiliary-node resolution | ⬜ |
-| 5 | PowerModels conversion (per-unit, taps) | ⬜ |
-| 6 | Profiles and study cases | ⬜ |
-| 7 | Lazy `Pkg` artifacts for the dataset | ⬜ |
-| 8 | Docs, tutorials, General registry | ⬜ |
+This package is a Julia port of the reference implementation
+[simbench](https://github.com/e2nIEE/simbench), which targets
+[pandapower](https://www.pandapower.org). The SimBench dataset and the original Python
+package are the work of University of Kassel, TU Dortmund, RWTH Aachen University and
+Fraunhofer IEE Kassel. This package reads their data; it does not replace or revalidate it.
 
 ## Installation
 
@@ -40,44 +44,89 @@ Pkg.add(url = "https://github.com/langestefan/SimBench.jl")
 
 ## Dataset
 
-The 378 MB CSV dataset is not bundled. Lazy artifact download arrives in phase 7; until
-then point the package at a local copy — the `simbench/networks` directory of a
-[`simbench`](https://github.com/e2nIEE/simbench) checkout:
+The SimBench CSV dataset is 378 MB and is not bundled with the package. Lazy download via
+`Pkg` artifacts arrives in phase 7. Until then, point the package at a local copy — the
+`simbench/networks` directory of a [simbench](https://github.com/e2nIEE/simbench) checkout:
 
 ```julia
-using SimBench
+julia> using SimBench
 
-SimBench.set_data_dir!("/path/to/simbench/simbench/networks")
-SimBench.scenario_path(0)          # validated path to the scenario-0 folder
-SimBench.available_tables(ans)     # the 17 CSV tables it contains
+julia> SimBench.set_data_dir!("/path/to/simbench/simbench/networks")
+"/path/to/simbench/simbench/networks"
+
+julia> SimBench.scenario_path(0)
+"/path/to/simbench/simbench/networks/1-complete_data-mixed-all-0-sw"
+
+julia> SimBench.available_tables(ans)
+17-element Vector{Symbol}:
+ :ExternalNet
+ :Line
+ :Load
+ :Node
+ ⋮
 ```
 
-`SIMBENCH_DATA_DIR` works as an environment-variable equivalent; `set_data_dir!` wins over
-it. Tests that need the dataset skip themselves when it is not configured.
+`SIMBENCH_DATA_DIR` works as an environment-variable equivalent; `set_data_dir!` takes
+precedence over it. Tests that need the dataset skip themselves when it is not configured.
+
+### Scenarios
+
+| Scenario | Folder | Size | Extra tables |
+| -------- | -------------------------------- | ------ | ---------------------------------------- |
+| 0 | `1-complete_data-mixed-all-0-sw` | 111 MB | — |
+| 1 | `1-complete_data-mixed-all-1-sw` | 133 MB | `Storage`, `StorageProfile`, `DCLineType` |
+| 2 | `1-complete_data-mixed-all-2-sw` | 134 MB | `Storage`, `StorageProfile`, `DCLineType` |
+
+Scenario 0 is the present-day grid. Scenarios 1 and 2 project storage and HVDC build-out
+onto it — scenario 2 carries 6,533 storage units, more than it has renewable generators.
+
+Individual benchmark grids are selected from this complete dataset by *SimBench code*, for
+example `1-MVLV-urban-all-0-sw`. Code parsing and grid extraction arrive in phases 2 and 3.
+
+## Roadmap
+
+| Phase | | Status |
+| ----- | ------------------------------------------- | ------ |
+| 1 | Skeleton, CI, dataset location | ✅ |
+| 2 | CSV parsing, SimBench codes, `SimBenchGrid` | ⬜ |
+| 3 | Subnet extraction by SimBench code | ⬜ |
+| 4 | Switch and auxiliary-node resolution | ⬜ |
+| 5 | PowerModels conversion (per-unit, taps) | ⬜ |
+| 6 | Profiles and study cases | ⬜ |
+| 7 | Lazy `Pkg` artifacts for the dataset | ⬜ |
+| 8 | Docs, tutorials, General registry | ⬜ |
 
 ## Design
 
-Conversion runs in two layers, so that the electrical maths is testable without touching
+Conversion runs in two layers, so that the electrical model is testable independently of
 CSV parsing:
 
-```
+```text
 CSV files ──▶ SimBenchGrid ──▶ PowerModels data dict ──▶ solve_ac_pf
-              (17 DataFrames,   (per-unit, bus/branch/
-               SimBench units)   gen/load/shunt)
+              (20 DataFrames,   (per-unit, bus/branch/
+               SimBench units)   gen/load/shunt/storage)
 ```
 
-Unlike the Python original, there is no pandapower in the middle. pandapower performs the
-per-unit conversion internally in `pd2ppc`; PowerModels expects per-unit input, so that
-layer is reimplemented here rather than ported. It is cross-validated against
-pandapower's power-flow results — see `PLAN.md` §6.
+Unlike the Python original there is no pandapower in the middle. pandapower performs the
+per-unit conversion internally in `pd2ppc`, whereas PowerModels expects per-unit input, so
+that layer is reimplemented here rather than ported. It is cross-validated numerically
+against pandapower's power-flow results — see [`PLAN.md`](PLAN.md) §6.
 
 ## License
 
-Code is BSD-3-Clause. The SimBench **dataset** is licensed separately under the
-[ODbL](https://opendatacommons.org/licenses/odbl/1.0/) by its original authors and carries
-attribution and share-alike obligations. See [`LICENSE`](LICENSE).
+The package code is BSD-3-Clause. The SimBench **dataset** is licensed separately under the
+[ODbL](https://opendatacommons.org/licenses/odbl/1.0/) by its original authors, and using it
+carries the ODbL's attribution and share-alike obligations. See [LICENSE](LICENSE).
 
-## Citing
+## How to Cite
 
-If you use the SimBench dataset, cite the original project rather than this port:
-<https://simbench.net>.
+If you use SimBench.jl, cite it using the metadata in
+[CITATION.cff](https://github.com/langestefan/SimBench.jl/blob/main/CITATION.cff). Please
+also cite the SimBench dataset and project itself, which this package only reads — see
+[simbench.net](https://simbench.net).
+
+## Contributing
+
+If you want to make contributions of any kind, please first take a look at our
+[contributing guide directly on GitHub](docs/src/contributing.md) or the
+[contributing page on the website](https://langestefan.github.io/SimBench.jl/dev/contributing/).
