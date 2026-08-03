@@ -33,6 +33,14 @@ SimBench.GRID_NUMBERS
 SimBench.TWO_SIDED_TABLES
 ```
 
+## PowerModels conversion
+
+```@docs
+SimBench.powermodels_data
+SimBench.DEFAULT_BASE_MVA
+SimBench.DEFAULT_ANGLE_LIMIT
+```
+
 ## Topology
 
 ```@docs

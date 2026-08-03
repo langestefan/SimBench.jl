@@ -8,6 +8,10 @@ Notable changes to SimBench.jl are recorded here. The format follows
 
 ### Added
 
+- `powermodels_data`, converting a grid to PowerModels network data. The per-unit values
+  match pandapower's internal arrays to floating point noise, and power flow results
+  agree to 1e-8 or better on the low and high voltage grids
+
 - The dataset downloads itself on first use as a lazy `Pkg` artifact, pointing at the
   upstream project's PyPI release rather than a copy hosted here
 

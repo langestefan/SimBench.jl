@@ -42,5 +42,6 @@ include("io.jl")
 include("extract.jl")
 include("grid.jl")
 include("switches.jl")
+include("powermodels.jl")
 
 end # module

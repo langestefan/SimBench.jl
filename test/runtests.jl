@@ -41,4 +41,5 @@ end
     include("test_extract.jl")
     include("test_grid.jl")
     include("test_switches.jl")
+    include("test_powermodels.jl")
 end
