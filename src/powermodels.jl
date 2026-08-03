@@ -118,6 +118,15 @@ function powermodels_data(
     storage_as in (:storage, :load) || throw(
         ArgumentError("storage_as must be :storage or :load, got :$storage_as"),
     )
+    # No published scenario ships three-winding transformers, so their conversion is
+    # not implemented. Converting silently without them would just be wrong.
+    nrow(grid.tables[:Transformer3W]) > 0 && throw(
+        ArgumentError(
+            "the grid has $(nrow(grid.tables[:Transformer3W])) three-winding " *
+                "transformers, whose conversion is not implemented",
+        ),
+    )
+
     topo = topology === nothing ? resolve_topology(grid; kwargs...) : topology
     tables = grid.tables
 

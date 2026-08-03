@@ -47,6 +47,15 @@ const PP_TRAFO = (
             @test_throws ArgumentError SimBench.powermodels_data(
                 grid; storage_as = :nope
             )
+
+            # Three-winding transformers are not converted; failing loudly beats a
+            # silently incomplete grid.
+            with3w = SimBench.SimBenchGrid(grid.code, copy(grid.tables))
+            with3w.tables[:Transformer3W] = push!(
+                copy(grid[:Transformer3W]),
+                fill(missing, size(grid[:Transformer3W], 2)),
+            )
+            @test_throws ArgumentError SimBench.powermodels_data(with3w)
         end
     end
 
