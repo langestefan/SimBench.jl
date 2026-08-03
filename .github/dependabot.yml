@@ -6,7 +6,14 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    labels:
+      # Dependency bumps carry no user-visible change, so the changelog gate skips them.
+      - "skip-changelog"
+      - "dependencies"
   - package-ecosystem: "julia"
     directory: "/"
     schedule:
       interval: "weekly"
+    labels:
+      - "skip-changelog"
+      - "dependencies"
