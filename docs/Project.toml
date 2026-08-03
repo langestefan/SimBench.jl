@@ -1,0 +1,6 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+SimBench = "32dbf506-5fe2-461d-9bb1-ec20229b5bac"
+
+[compat]
+Documenter = "1"
