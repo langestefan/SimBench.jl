@@ -13,6 +13,11 @@ lcov.info
 /docs/build/
 /gen/build/
 
+# Vitepress
+docs/package-lock.json
+node_modules/
+docs/src/.vitepress/cache/
+
 # Editor and OS
 .vscode/
 .DS_Store

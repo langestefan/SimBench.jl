@@ -1,5 +1,6 @@
 using SimBench
 using Documenter
+using DocumenterVitepress
 
 DocMeta.setdocmeta!(SimBench, :DocTestSetup, :(using SimBench); recursive = true)
 
@@ -7,10 +8,10 @@ makedocs(;
     modules = [SimBench],
     authors = "Stefan de Lange <langestefan@msn.com>",
     sitename = "SimBench.jl",
-    format = Documenter.HTML(;
-        canonical = "https://langestefan.github.io/SimBench.jl",
-        edit_link = "main",
-        assets = String[],
+    format = MarkdownVitepress(;
+        repo = "github.com/langestefan/SimBench.jl",
+        devbranch = "main",
+        devurl = "dev",
     ),
     pages = [
         "Home" => "index.md",
@@ -20,4 +21,8 @@ makedocs(;
     checkdocs = :exports,
 )
 
-deploydocs(; repo = "github.com/langestefan/SimBench.jl", devbranch = "main")
+DocumenterVitepress.deploydocs(;
+    repo = "github.com/langestefan/SimBench.jl",
+    devbranch = "main",
+    push_preview = true,
+)
