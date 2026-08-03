@@ -1,0 +1,12 @@
+using SimBench
+using Test
+using Aqua
+
+@testset "SimBench.jl" begin
+    @testset "Code quality (Aqua)" begin
+        Aqua.test_all(SimBench)
+    end
+
+    include("test_schema.jl")
+    include("test_data_source.jl")
+end
