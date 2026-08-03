@@ -1,0 +1,16 @@
+# The SimBench dataset, taken from the upstream project's own PyPI release rather than
+# redistributed here. PyPI filenames are immutable once published, so the recorded
+# sha256 stays valid; GitHub's auto-generated source tarballs are regenerated on demand
+# and have changed bytes before, which would break the checksum.
+#
+# The sdist carries every CSV (MANIFEST.in has `global-include *.csv`): 88 MB
+# compressed, 399 MB unpacked, covering all three scenarios. It is lazy, so `] add
+# SimBench` downloads nothing and the fetch happens on first use.
+
+[simbench_dataset]
+git-tree-sha1 = "883a31d43a6ec4e17d532a9f3f4856275d9df901"
+lazy = true
+
+    [[simbench_dataset.download]]
+    sha256 = "bade33916490d678d813d6732599825821149f142996b6c1af48d4ad0e9b6613"
+    url = "https://files.pythonhosted.org/packages/source/s/simbench/simbench-1.6.2.tar.gz"

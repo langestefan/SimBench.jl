@@ -126,9 +126,8 @@ end
     end
 
     @testset "code drives the default variant" begin
-        configured = get(ENV, SimBench.DATA_DIR_ENV, nothing)
-        if configured === nothing || !isdir(configured)
-            @info "Skipping topology tests: set $(SimBench.DATA_DIR_ENV) to enable."
+        if DATASET === nothing
+            @info "Skipping topology tests: dataset unavailable."
         else
             SimBench.reset_data_dir!()
             grid_sw = SimBench.read_grid("1-MV-rural--0-sw"; nrows = 1)
@@ -143,9 +142,8 @@ end
     end
 
     @testset "whole scenario" begin
-        configured = get(ENV, SimBench.DATA_DIR_ENV, nothing)
-        if configured === nothing || !isdir(configured)
-            @info "Skipping scenario topology tests: set $(SimBench.DATA_DIR_ENV) to enable."
+        if DATASET === nothing
+            @info "Skipping scenario topology tests: dataset unavailable."
         else
             SimBench.reset_data_dir!()
             t = SimBench.read_tables(SimBench.scenario_path(0); nrows = 1)

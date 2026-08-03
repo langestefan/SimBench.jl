@@ -8,6 +8,9 @@ Notable changes to SimBench.jl are recorded here. The format follows
 
 ### Added
 
+- The dataset downloads itself on first use as a lazy `Pkg` artifact, pointing at the
+  upstream project's PyPI release rather than a copy hosted here
+
 - `resolve_topology`, collapsing auxiliary nodes and switches into a bus topology, in
   both the collapsed and the coupler-preserving variant
 - Grid extraction by SimBench code, validated against the reference implementation over

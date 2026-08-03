@@ -26,18 +26,30 @@ Pkg.add(url = "https://github.com/langestefan/SimBench.jl")
 
 ## Dataset location
 
-The SimBench CSV dataset is 378 MB and is not bundled with the package. Automatic download
-is not implemented yet, so point the package at a local copy: the `simbench/networks`
-directory of a [`simbench`](https://github.com/e2nIEE/simbench) checkout.
+The dataset downloads itself on first use, as a lazy `Pkg` artifact, so installing the
+package fetches nothing until you ask for a grid. The download is 88 MB and unpacks to
+about 399 MB, covering all three scenarios.
 
 ```julia
 using SimBench
-SimBench.set_data_dir!("/path/to/simbench/simbench/networks")
-SimBench.scenario_path(0)
+SimBench.scenario_path(0)     # downloads on the first call
 ```
 
-Equivalently, set the `SIMBENCH_DATA_DIR` environment variable to the same directory. An
-explicit `set_data_dir!` takes precedence over the environment variable.
+The artifact points at the upstream project's own
+[PyPI release](https://pypi.org/project/simbench/) rather than a copy hosted here, so the
+data is the published one and this package is not a redistributor of it. PyPI filenames
+are immutable once uploaded, which keeps the recorded checksum valid.
+
+To use a local copy instead, point the package at a directory holding the scenario
+folders:
+
+```julia
+SimBench.set_data_dir!("/path/to/simbench/simbench/networks")
+```
+
+`SIMBENCH_DATA_DIR` is the environment-variable equivalent. Resolution order is
+[`SimBench.set_data_dir!`](@ref), then `SIMBENCH_DATA_DIR`, then
+[`SimBench.artifact_data_dir`](@ref).
 
 ## Dataset structure
 

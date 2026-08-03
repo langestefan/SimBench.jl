@@ -32,13 +32,16 @@ for Julia formatting, ExplicitImports, markdownlint, yamllint and typos. Install
 
 ## Tests that need the dataset
 
-The SimBench CSV dataset is 378 MB and is not bundled with the package. Tests that need it
-skip themselves when it is not configured, so a plain `Pkg.test()` passes without it. To
-run them, point the package at a local copy:
+Most of the suite runs against the real dataset, which the test run downloads once as a
+lazy artifact. The first `Pkg.test()` on a fresh machine therefore fetches 88 MB. To run
+against a local copy instead:
 
 ```bash
 SIMBENCH_DATA_DIR=/path/to/simbench/simbench/networks julia --project=. -e 'using Pkg; Pkg.test()'
 ```
+
+Tests needing real data skip themselves if it can be obtained neither way, so the suite
+still passes offline, with a warning and a reduced count.
 
 ## Correctness
 

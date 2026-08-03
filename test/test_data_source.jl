@@ -25,13 +25,19 @@ end
         mktempdir() do root
             withenv(SimBench.DATA_DIR_ENV => nothing) do
                 SimBench.reset_data_dir!()
-                @test_throws SimBench.SimBenchDataError SimBench.data_dir()
 
                 # Explicit setting wins.
                 @test SimBench.set_data_dir!(root) == abspath(root)
                 @test SimBench.data_dir() == abspath(root)
                 SimBench.reset_data_dir!()
-                @test_throws SimBench.SimBenchDataError SimBench.data_dir()
+
+                # With nothing configured, resolution falls through to the artifact.
+                # That is the artifact path specifically, which differs from DATASET
+                # whenever SIMBENCH_DATA_DIR points somewhere else.
+                if ARTIFACT_DIR !== nothing
+                    @test SimBench.data_dir() == ARTIFACT_DIR
+                    @test occursin("artifacts", ARTIFACT_DIR)
+                end
             end
 
             # Environment variable is the fallback.
@@ -113,9 +119,8 @@ end
     end
 
     @testset "real dataset" begin
-        configured = get(ENV, SimBench.DATA_DIR_ENV, nothing)
-        if configured === nothing || !isdir(configured)
-            @info "Skipping real-dataset tests: set $(SimBench.DATA_DIR_ENV) to enable."
+        if DATASET === nothing
+            @info "Skipping real-dataset tests: dataset unavailable."
         else
             SimBench.reset_data_dir!()
             for scenario in SimBench.SCENARIOS

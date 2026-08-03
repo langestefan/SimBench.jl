@@ -89,6 +89,7 @@ SimBench.VN_KV_LIMITS
 
 ```@docs
 SimBench.data_dir
+SimBench.artifact_data_dir
 SimBench.set_data_dir!
 SimBench.reset_data_dir!
 SimBench.scenario_path
@@ -98,6 +99,8 @@ SimBench.SimBenchDataError
 SimBench.DATA_DIR_ENV
 SimBench.SCENARIOS
 SimBench.DATASET_VERSION
+SimBench.DATASET_RELEASE
+SimBench.ARTIFACT_SUBPATH
 ```
 
 ## Table inventory

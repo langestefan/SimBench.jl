@@ -28,9 +28,11 @@ or set the `SIMBENCH_DATA_DIR` environment variable to the same directory.
 """
 module SimBench
 
+using Artifacts: @artifact_str
 using CSV: CSV
 using DataFrames: DataFrame, nrow
 using Dates: DateTime, @dateformat_str
+using LazyArtifacts: LazyArtifacts
 
 include("schema.jl")
 include("data_source.jl")

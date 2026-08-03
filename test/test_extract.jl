@@ -190,9 +190,8 @@ const REFERENCE_EXTRACTIONS = Dict(
     end
 
     @testset "against the reference implementation" begin
-        configured = get(ENV, SimBench.DATA_DIR_ENV, nothing)
-        if configured === nothing || !isdir(configured)
-            @info "Skipping extraction tests: set $(SimBench.DATA_DIR_ENV) to enable."
+        if DATASET === nothing
+            @info "Skipping extraction tests: dataset unavailable."
         else
             SimBench.reset_data_dir!()
             # Read each scenario once and extract from it, rather than re-reading per code.

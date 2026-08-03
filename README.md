@@ -36,7 +36,7 @@ series across every voltage level, which makes it useful for:
 | Switch and auxiliary node resolution | ✅ |
 | PowerModels conversion | ⬜ |
 | Profiles and study cases | ⬜ |
-| Automatic dataset download | ⬜ |
+| Automatic dataset download | ✅ |
 
 ## Acknowledgement
 
@@ -55,30 +55,31 @@ Pkg.add(url = "https://github.com/langestefan/SimBench.jl")
 
 ## Dataset
 
-The SimBench CSV dataset is 378 MB and is not bundled with the package. Automatic download
-is not implemented yet, so point the package at a local copy: the `simbench/networks`
-directory of a [simbench](https://github.com/e2nIEE/simbench) checkout.
+The dataset downloads itself on first use, as a lazy `Pkg` artifact, so `] add SimBench`
+stays small and nothing is fetched until you ask for a grid. The download is 88 MB and
+unpacks to about 399 MB, covering all three scenarios.
 
 ```julia
 julia> using SimBench
 
-julia> SimBench.set_data_dir!("/path/to/simbench/simbench/networks")
-"/path/to/simbench/simbench/networks"
-
-julia> SimBench.scenario_path(0)
-"/path/to/simbench/simbench/networks/1-complete_data-mixed-all-0-sw"
-
-julia> SimBench.available_tables(ans)
-17-element Vector{Symbol}:
- :ExternalNet
- :Line
- :Load
- :Node
- ⋮
+julia> SimBench.scenario_path(0)     # downloads on the first call
+"~/.julia/artifacts/883a31d4.../simbench-1.6.2/simbench/networks/1-complete_data-mixed-all-0-sw"
 ```
 
-`SIMBENCH_DATA_DIR` works as an environment-variable equivalent; `set_data_dir!` takes
-precedence over it. Tests that need the dataset skip themselves when it is not configured.
+The artifact points at the upstream project's own
+[PyPI release](https://pypi.org/project/simbench/) rather than a copy hosted here, so the
+data is the published one. PyPI filenames are immutable once uploaded, which keeps the
+recorded checksum valid.
+
+To use a local copy instead, for instance when working offline or against modified data,
+point the package at a directory holding the scenario folders:
+
+```julia
+SimBench.set_data_dir!("/path/to/simbench/simbench/networks")
+```
+
+`SIMBENCH_DATA_DIR` is the environment-variable equivalent. Resolution order is
+`set_data_dir!`, then `SIMBENCH_DATA_DIR`, then the artifact.
 
 ### Scenarios
 

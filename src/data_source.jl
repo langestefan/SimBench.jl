@@ -1,8 +1,8 @@
 # Locating the SimBench CSV dataset on disk.
 #
-# The dataset is currently resolved through the SIMBENCH_DATA_DIR environment variable or
-# an explicit `set_data_dir!` call. Lazy Pkg artifacts will later download it on demand so
-# that neither is required.
+# By default the dataset comes from a lazy Pkg artifact pointing at the upstream project's
+# PyPI release, downloaded on first use. An explicit `set_data_dir!` call or the
+# SIMBENCH_DATA_DIR environment variable overrides that with a local copy.
 
 """
     SimBenchDataError <: Exception
@@ -25,7 +25,30 @@ const SCENARIOS = (0, 1, 2)
 """Dataset version. Only version 1 has been published."""
 const DATASET_VERSION = 1
 
+"""
+Release of the upstream `simbench` project the dataset artifact is taken from.
+
+The artifact is that project's own PyPI source distribution, which ships every CSV, so
+the data is the published one rather than a copy maintained here.
+"""
+const DATASET_RELEASE = v"1.6.2"
+
+"""Path of the scenario folders within the unpacked artifact."""
+const ARTIFACT_SUBPATH =
+    joinpath("simbench-$(DATASET_RELEASE)", "simbench", "networks")
+
 const _DATA_DIR = Ref{Union{Nothing, String}}(nothing)
+
+"""
+    artifact_data_dir() -> String
+
+Dataset directory inside the lazy artifact, downloading it on first call.
+
+The download is roughly 88 MB and unpacks to about 399 MB, covering all three scenarios.
+"""
+function artifact_data_dir()
+    return joinpath(artifact"simbench_dataset", ARTIFACT_SUBPATH)
+end
 
 """
     complete_data_folder(scenario; version=DATASET_VERSION) -> String
@@ -64,31 +87,42 @@ reset_data_dir!() = (_DATA_DIR[] = nothing)
 Directory containing the SimBench scenario folders.
 
 Resolution order: an explicit [`set_data_dir!`](@ref), then the `SIMBENCH_DATA_DIR`
-environment variable.
+environment variable, then the lazy artifact. Falling through to the artifact downloads
+about 88 MB on first use.
 """
 function data_dir()::String
     configured = _DATA_DIR[]
     configured === nothing || return configured
 
     dir = get(ENV, DATA_DIR_ENV, nothing)
-    dir === nothing && throw(
-        SimBenchDataError(
-            """
-            SimBench dataset location is not configured.
+    if dir !== nothing
+        path = abspath(expanduser(dir))
+        isdir(path) || throw(
+            SimBenchDataError("$DATA_DIR_ENV points at a non-existent directory: $path"),
+        )
+        return path
+    end
 
-            Set the $DATA_DIR_ENV environment variable, or call
-            SimBench.set_data_dir!("/path/to/simbench/networks"), pointing at a directory
-            that contains the scenario folders $(join(complete_data_folder.(SCENARIOS), ", ")).
+    try
+        return artifact_data_dir()
+    catch err
+        throw(
+            SimBenchDataError(
+                """
+                The SimBench dataset could not be obtained: $(sprint(showerror, err))
 
-            Automatic download via Pkg artifacts is not implemented yet.""",
-        ),
-    )
+                It is normally downloaded on first use, about 88 MB, from the upstream
+                project's PyPI release. If this machine has no network access, point the
+                package at a local copy instead:
 
-    path = abspath(expanduser(dir))
-    isdir(path) || throw(
-        SimBenchDataError("$DATA_DIR_ENV points at a non-existent directory: $path"),
-    )
-    return path
+                    SimBench.set_data_dir!("/path/to/simbench/simbench/networks")
+
+                or set the $DATA_DIR_ENV environment variable to the same directory. It
+                must contain the scenario folders \
+                $(join(complete_data_folder.(SCENARIOS), ", ")).""",
+            ),
+        )
+    end
 end
 
 """

@@ -125,9 +125,8 @@ const NODE_HEADER = "id;type;vmSetp;vaSetp;vmR;vmMin;vmMax;substation;coordID;su
     end
 
     @testset "real dataset" begin
-        configured = get(ENV, SimBench.DATA_DIR_ENV, nothing)
-        if configured === nothing || !isdir(configured)
-            @info "Skipping real-dataset io tests: set $(SimBench.DATA_DIR_ENV) to enable."
+        if DATASET === nothing
+            @info "Skipping real-dataset io tests: dataset unavailable."
         else
             SimBench.reset_data_dir!()
             dir = SimBench.scenario_path(0)

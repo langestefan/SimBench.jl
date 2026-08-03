@@ -8,9 +8,8 @@ using DataFrames: nrow
     end
 
     @testset "reading" begin
-        configured = get(ENV, SimBench.DATA_DIR_ENV, nothing)
-        if configured === nothing || !isdir(configured)
-            @info "Skipping grid reading tests: set $(SimBench.DATA_DIR_ENV) to enable."
+        if DATASET === nothing
+            @info "Skipping grid reading tests: dataset unavailable."
         else
             SimBench.reset_data_dir!()
 
