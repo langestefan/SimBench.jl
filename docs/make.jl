@@ -6,6 +6,11 @@ using DocumenterVitepress
 # capture. PowerModels' Memento logger binds its stream when the package first loads;
 # loading inside a captured block ties it to that block's pipe, and every later log
 # write, such as the one PowerModels.silence() emits, hits a closed stream.
+#
+# Memento is gone from PowerModels 0.21.6, which switched to Logging.jl, but this
+# environment cannot resolve it yet: 0.21.6 requires JSON 1, while VegaLite, which
+# PowerPlots plots through, caps JSON below 1. Once VegaLite allows JSON 1 the
+# resolver picks 0.21.6 on its own and this preload becomes harmless.
 using PowerModels
 using PowerPlots
 using VegaLite
