@@ -23,15 +23,16 @@ series across every voltage level, which makes it useful for:
 - Time series and study case analysis
 
 > [!WARNING]
-> **Work in progress.** Dataset location and the table inventory are in place. Reading
-> grids and converting them to PowerModels is not implemented yet.
+> **Work in progress.** Reading a whole scenario into a `SimBenchGrid` works.
+> Extracting an individual benchmark grid by SimBench code, and converting to
+> PowerModels, are not implemented yet.
 
 ## Status
 
 | Feature | Status |
 | ------------------------------------------- | ------ |
 | Dataset location and table inventory | ✅ |
-| CSV parsing, SimBench codes, `SimBenchGrid` | ⬜ |
+| CSV parsing, SimBench codes, `SimBenchGrid` | ✅ |
 | Grid extraction by SimBench code | ⬜ |
 | Switch and auxiliary node resolution | ⬜ |
 | PowerModels conversion | ⬜ |

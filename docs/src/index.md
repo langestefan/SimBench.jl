@@ -13,8 +13,9 @@ IEE. This package is a Julia port of the [reference
 implementation](https://github.com/e2nIEE/simbench), which targets pandapower.
 
 !!! warning "Work in progress"
-    Dataset location and the table inventory are in place. Reading grids and converting
-    them to PowerModels is not implemented yet.
+    Reading a whole scenario into a [`SimBench.SimBenchGrid`](@ref) works. Extracting an
+    individual benchmark grid by SimBench code, and converting to PowerModels, are not
+    implemented yet.
 
 ## Installation
 
@@ -52,8 +53,26 @@ Scenario 0 is the present-day grid. Scenarios 1 and 2 project storage and HVDC b
 onto it, and are the only ones shipping the `Storage`, `StorageProfile` and `DCLineType`
 tables ([`SimBench.SCENARIO_TABLES`](@ref)).
 
+## Reading a grid
+
+```julia
+julia> grid = SimBench.read_grid(0)
+SimBenchGrid("1-complete_data-mixed-all-0-sw")
+  Coordinates        37693 rows
+  ExternalNet          444 rows
+  Line               34606 rows
+  ...
+
+julia> grid[:Line]
+34606x8 DataFrame
+```
+
+Tables come back as `DataFrame`s in the units the dataset publishes, with the CSV `id`
+strings as identifiers. Tables a scenario does not ship are present but empty, so code
+never has to test for them.
+
 Individual benchmark grids are selected from this complete dataset by *SimBench code*,
-for example `1-MVLV-urban-all-0-sw`.
+for example `1-MVLV-urban-all-0-sw`. Selecting one is not implemented yet.
 
 ## License
 

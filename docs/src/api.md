@@ -12,6 +12,57 @@ Nothing is exported yet. Everything below is reached as `SimBench.name`.
 SimBench.SimBench
 ```
 
+## Grids
+
+```@docs
+SimBench.SimBenchGrid
+SimBench.read_grid
+SimBench.scenario
+```
+
+## SimBench codes
+
+```@docs
+SimBench.SimBenchCode
+SimBench.all_simbench_codes
+SimBench.is_complete_data
+SimBench.complete_data_code
+SimBench.complete_grid_code
+```
+
+### Code space
+
+```@docs
+SimBench.HV_LEVELS
+SimBench.LV_LEVELS
+SimBench.VOLTAGE_LEVEL_PAIRS
+SimBench.HV_TYPES
+SimBench.LV_GRIDS
+SimBench.LV_GRIDS_SHORTENED
+```
+
+## Reading CSV tables
+
+```@docs
+SimBench.read_table
+SimBench.read_tables
+SimBench.empty_table
+SimBench.CSV_DELIM
+SimBench.CSV_MISSING
+SimBench.PROFILE_TIME_COLUMN
+SimBench.PROFILE_TIME_FORMAT
+```
+
+## Voltage levels
+
+```@docs
+SimBench.voltlvl_int
+SimBench.voltlvl_name
+SimBench.voltlvl_from_vn_kv
+SimBench.VOLTLVL_NAMES
+SimBench.VN_KV_LIMITS
+```
+
 ## Dataset location
 
 ```@docs
@@ -34,6 +85,9 @@ SimBench.csv_tablenames
 SimBench.csv_filename
 SimBench.available_tables
 SimBench.missing_tables
+SimBench.has_fixed_schema
+SimBench.table_columns
+SimBench.table_coltypes
 ```
 
 ### Table groups
