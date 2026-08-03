@@ -12,7 +12,11 @@ makedocs(;
         edit_link = "main",
         assets = String[],
     ),
-    pages = ["Home" => "index.md", "API" => "api.md"],
+    pages = [
+        "Home" => "index.md",
+        "API" => "api.md",
+        "Contributing" => "contributing.md",
+    ],
     checkdocs = :exports,
 )
 
