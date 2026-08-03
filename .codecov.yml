@@ -1,0 +1,10 @@
+coverage:
+  status:
+    # The port lands phase by phase; do not block PRs on a coverage delta while
+    # whole subsystems are still missing.
+    project:
+      default:
+        informational: true
+    patch:
+      default:
+        informational: true

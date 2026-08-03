@@ -1,0 +1,14 @@
+# Slow institutional and DOI redirect sites regularly exceed the 20 s default and
+# flake CI.
+timeout = 60
+max_retries = 4
+
+exclude = [
+  "@ref",
+  "@cite",
+  "^https://github.com/.*/releases/tag/v.*$",
+  # Resolves only once the package is registered and docs are first deployed.
+  "^https://langestefan\\.github\\.io/SimBench\\.jl.*$",
+]
+
+exclude_path = ["docs/build"]
