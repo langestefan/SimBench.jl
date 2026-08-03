@@ -1,0 +1,18 @@
+# Resolved dependency state — libraries do not pin a Manifest.
+# Unanchored, so this also covers docs/ and test/.
+Manifest.toml
+Manifest-v*.toml
+
+# Coverage output
+*.jl.cov
+*.jl.*.cov
+*.jl.mem
+lcov.info
+
+# Build output
+/docs/build/
+/gen/build/
+
+# Editor and OS
+.vscode/
+.DS_Store

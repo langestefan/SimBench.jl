@@ -1,0 +1,22 @@
+name = "SimBench"
+uuid = "32dbf506-5fe2-461d-9bb1-ec20229b5bac"
+authors = ["Stefan de Lange <langestefan@msn.com>"]
+version = "0.1.0-DEV"
+
+[deps]
+
+# CSV, DataFrames and PowerModels are added in phases 2 and 5, when code actually loads
+# them. Resolution against julia 1.10+ was verified up front: CSV 0.10.16,
+# DataFrames 1.8.2, PowerModels 0.21.6.
+
+[compat]
+Aqua = "0.8"
+Test = "1"
+julia = "1.10"
+
+[extras]
+Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Aqua", "Test"]

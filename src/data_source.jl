@@ -1,0 +1,151 @@
+# Locating the SimBench CSV dataset on disk.
+#
+# Phase 1 resolves the dataset through the SIMBENCH_DATA_DIR environment variable or an
+# explicit `set_data_dir!` call. Phase 7 adds lazy Pkg artifacts so that the dataset is
+# downloaded on demand and neither is required.
+
+"""
+    SimBenchDataError <: Exception
+
+Raised when the SimBench CSV dataset cannot be located or is incomplete.
+"""
+struct SimBenchDataError <: Exception
+    msg::String
+end
+
+Base.showerror(io::IO, e::SimBenchDataError) =
+    print(io, "SimBenchDataError: ", e.msg)
+
+"""Environment variable pointing at the directory holding the scenario folders."""
+const DATA_DIR_ENV = "SIMBENCH_DATA_DIR"
+
+"""Scenario identifiers of the published SimBench dataset."""
+const SCENARIOS = (0, 1, 2)
+
+"""Dataset version. Only version 1 has been published."""
+const DATASET_VERSION = 1
+
+const _DATA_DIR = Ref{Union{Nothing,String}}(nothing)
+
+"""
+    complete_data_folder(scenario; version=DATASET_VERSION) -> String
+
+Folder name holding the complete grid data for `scenario`, e.g.
+`"1-complete_data-mixed-all-0-sw"`.
+"""
+function complete_data_folder(scenario::Integer; version::Integer = DATASET_VERSION)
+    return string(version, "-complete_data-mixed-all-", scenario, "-sw")
+end
+
+"""
+    set_data_dir!(dir) -> String
+
+Point SimBench.jl at a directory containing the scenario folders (the `networks`
+directory of a `simbench` Python checkout, for example). Overrides `SIMBENCH_DATA_DIR`
+for the current session.
+"""
+function set_data_dir!(dir::AbstractString)
+    path = abspath(expanduser(dir))
+    isdir(path) || throw(SimBenchDataError("not a directory: $path"))
+    _DATA_DIR[] = path
+    return path
+end
+
+"""
+    reset_data_dir!()
+
+Forget a directory set with [`set_data_dir!`](@ref) and fall back to `SIMBENCH_DATA_DIR`.
+"""
+reset_data_dir!() = (_DATA_DIR[] = nothing)
+
+"""
+    data_dir() -> String
+
+Directory containing the SimBench scenario folders.
+
+Resolution order: an explicit [`set_data_dir!`](@ref), then the `SIMBENCH_DATA_DIR`
+environment variable.
+"""
+function data_dir()::String
+    configured = _DATA_DIR[]
+    configured === nothing || return configured
+
+    dir = get(ENV, DATA_DIR_ENV, nothing)
+    dir === nothing && throw(
+        SimBenchDataError(
+            """
+            SimBench dataset location is not configured.
+
+            Set the $DATA_DIR_ENV environment variable, or call
+            SimBench.set_data_dir!("/path/to/simbench/networks"), pointing at a directory
+            that contains the scenario folders $(join(complete_data_folder.(SCENARIOS), ", ")).
+
+            Automatic download via Pkg artifacts is not implemented yet.""",
+        ),
+    )
+
+    path = abspath(expanduser(dir))
+    isdir(path) || throw(
+        SimBenchDataError("$DATA_DIR_ENV points at a non-existent directory: $path"),
+    )
+    return path
+end
+
+"""
+    scenario_path(scenario; version=DATASET_VERSION) -> String
+
+Absolute path to the dataset folder for `scenario`, validated to exist and to hold every
+table in [`REQUIRED_TABLES`](@ref).
+"""
+function scenario_path(scenario::Integer; version::Integer = DATASET_VERSION)
+    scenario in SCENARIOS || throw(
+        ArgumentError(
+            "scenario must be one of $(join(SCENARIOS, ", ")), got $scenario",
+        ),
+    )
+
+    path = joinpath(data_dir(), complete_data_folder(scenario; version))
+    isdir(path) || throw(
+        SimBenchDataError(
+            "scenario $scenario folder not found: $path\n" *
+            "Contents of $(data_dir()): $(join(readdir(data_dir()), ", "))",
+        ),
+    )
+
+    absent = missing_tables(path)
+    isempty(absent) || throw(
+        SimBenchDataError(
+            "scenario $scenario at $path is missing required tables: " *
+            join(absent, ", "),
+        ),
+    )
+
+    return path
+end
+
+"""
+    available_tables(dir) -> Vector{Symbol}
+
+Tables of the SimBench CSV format that are present as files in `dir`, in schema order.
+"""
+function available_tables(dir::AbstractString)
+    return [t for t in ALL_TABLES if isfile(joinpath(dir, csv_filename(t)))]
+end
+
+"""
+    missing_tables(dir) -> Vector{Symbol}
+
+Required tables absent from `dir`. Empty for a complete dataset folder. Tables in
+[`OPTIONAL_TABLES`](@ref) are never reported.
+"""
+function missing_tables(dir::AbstractString)
+    return [t for t in REQUIRED_TABLES if !isfile(joinpath(dir, csv_filename(t)))]
+end
+
+"""
+    table_path(dir, table) -> String
+
+Path to `table`'s CSV file inside dataset folder `dir`. Does not check existence:
+optional tables are legitimately absent.
+"""
+table_path(dir::AbstractString, table::Symbol) = joinpath(dir, csv_filename(table))
