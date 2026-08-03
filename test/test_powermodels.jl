@@ -247,6 +247,27 @@ const PP_TRAFO = (
         end
     end
 
+    @testset "sw variant keeps couplers as branches" begin
+        if DATASET !== nothing
+            grid = SimBench.read_grid("1-LV-rural1--0-sw"; nrows = 1)
+            data = SimBench.powermodels_data(grid)
+            couplers = [
+                b for b in values(data["branch"]) if b["source_id"][1] == "branch" &&
+                    startswith(b["source_id"][2], "coupler")
+            ]
+            @test !isempty(couplers)
+            for c in couplers
+                @test c["br_r"] == 0.0
+                @test c["br_x"] == 1.0e-6
+            end
+            # More buses than the collapsed variant, since auxiliary nodes stay.
+            collapsed = SimBench.powermodels_data(
+                SimBench.read_grid("1-LV-rural1--0-no_sw"; nrows = 1)
+            )
+            @test length(data["bus"]) > length(collapsed["bus"])
+        end
+    end
+
     @testset "open-ended branches are out of service" begin
         if DATASET !== nothing
             grid = SimBench.read_grid("1-MV-rural--0-no_sw"; nrows = 1)

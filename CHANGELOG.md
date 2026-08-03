@@ -6,6 +6,13 @@ Notable changes to SimBench.jl are recorded here. The format follows
 
 ## unreleased
 
+### Changed
+
+- The default `coupler_impedance` is 1.0e-6 rather than 1.0e-5 per unit. The `sw`
+  variants are now validated against pandapower across all voltage levels; voltage
+  agreement scales linearly with this impedance, and Newton-Raphson tolerates one more
+  order of magnitude before failing around 1.0e-7
+
 ### Added
 
 - Time series and study cases: `absolute_profiles` turns the relative profiles into

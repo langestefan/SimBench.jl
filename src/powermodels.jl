@@ -50,9 +50,12 @@ the bus base voltages. `per_unit` is `true`, so PowerModels leaves it alone.
 - `topology`: a [`Topology`](@ref) to use instead of resolving one. Resolving follows the
   grid's SimBench code, so a `no_sw` code collapses bus couplers and an `sw` code keeps
   them as zero-impedance branches.
-- `coupler_impedance = 1.0e-5`: per-unit series reactance given to a bus coupler that was
+- `coupler_impedance = 1.0e-6`: per-unit series reactance given to a bus coupler that was
   not fused. Only used for an `sw` grid; PowerModels has no switch element, and an exactly
-  zero impedance makes the system singular.
+  zero impedance makes the system singular. pandapower fuses switches ideally, so this
+  impedance is the difference between the two: voltage agreement scales linearly with
+  it, about 4.0e-6 pu on the high voltage grid at the default. Newton-Raphson stops
+  converging around 1.0e-7, which is why the default is not smaller.
 - `pq_as = :load`: how to represent elements whose `calc_type` is `pq`, which in the
   published data means every renewable generator. `:load` makes each one a negative load,
   matching what pandapower does with a static generator and keeping all generators on PV
@@ -97,7 +100,7 @@ function powermodels_data(
         grid::SimBenchGrid;
         baseMVA::Real = DEFAULT_BASE_MVA,
         topology::Union{Nothing, Topology} = nothing,
-        coupler_impedance::Real = 1.0e-5,
+        coupler_impedance::Real = 1.0e-6,
         pq_as::Symbol = :load,
         dc_as::Symbol = :gen,
         storage_as::Symbol = :storage,
