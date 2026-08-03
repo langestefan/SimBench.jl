@@ -14,11 +14,11 @@ end
 
     @testset "folder naming" begin
         @test SimBench.complete_data_folder(0) ==
-              "1-complete_data-mixed-all-0-sw"
+            "1-complete_data-mixed-all-0-sw"
         @test SimBench.complete_data_folder(2) ==
-              "1-complete_data-mixed-all-2-sw"
+            "1-complete_data-mixed-all-2-sw"
         @test SimBench.complete_data_folder(0; version = 2) ==
-              "2-complete_data-mixed-all-0-sw"
+            "2-complete_data-mixed-all-0-sw"
     end
 
     @testset "resolution" begin
@@ -65,7 +65,7 @@ end
             @test isempty(SimBench.missing_tables(dir))
             # Optional tables were not created, so they must not show up as available.
             @test sort(SimBench.available_tables(dir)) ==
-                  sort(collect(SimBench.REQUIRED_TABLES))
+                sort(collect(SimBench.REQUIRED_TABLES))
 
             rm(joinpath(dir, SimBench.csv_filename(:Node)))
             rm(joinpath(dir, SimBench.csv_filename(:LineType)))
@@ -88,7 +88,7 @@ end
             SimBench.set_data_dir!(root)
             try
                 @test SimBench.scenario_path(0) ==
-                      joinpath(abspath(root), SimBench.complete_data_folder(0))
+                    joinpath(abspath(root), SimBench.complete_data_folder(0))
 
                 # Present but incomplete.
                 err = try

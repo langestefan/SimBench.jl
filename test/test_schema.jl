@@ -1,16 +1,16 @@
 @testset "schema" begin
     @testset "table groups" begin
         @test SimBench.csv_tablenames(:types) ==
-              [:LineType, :DCLineType, :TransformerType, :Transformer3WType]
+            [:LineType, :DCLineType, :TransformerType, :Transformer3WType]
         @test SimBench.csv_tablenames(:cases) == [:StudyCases]
         @test length(SimBench.csv_tablenames(:elements)) == 14
         @test length(SimBench.csv_tablenames(:profiles)) == 4
 
         # Multiple groups concatenate in the order given.
         @test SimBench.csv_tablenames((:cases, :res_elements)) ==
-              [:StudyCases, :NodePFResult]
+            [:StudyCases, :NodePFResult]
         @test SimBench.csv_tablenames((:res_elements, :cases)) ==
-              [:NodePFResult, :StudyCases]
+            [:NodePFResult, :StudyCases]
 
         @test_throws ArgumentError SimBench.csv_tablenames(:nope)
     end
@@ -33,7 +33,7 @@
         @test sort(parts) == sort(collect(SimBench.ALL_TABLES))
 
         @test sort(collect(SimBench.REQUIRED_TABLES)) ==
-              sort(setdiff(SimBench.ALL_TABLES, SimBench.OPTIONAL_TABLES))
+            sort(setdiff(SimBench.ALL_TABLES, SimBench.OPTIONAL_TABLES))
         @test isempty(
             intersect(SimBench.REQUIRED_TABLES, SimBench.OPTIONAL_TABLES),
         )

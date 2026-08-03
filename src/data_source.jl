@@ -25,7 +25,7 @@ const SCENARIOS = (0, 1, 2)
 """Dataset version. Only version 1 has been published."""
 const DATASET_VERSION = 1
 
-const _DATA_DIR = Ref{Union{Nothing,String}}(nothing)
+const _DATA_DIR = Ref{Union{Nothing, String}}(nothing)
 
 """
     complete_data_folder(scenario; version=DATASET_VERSION) -> String
@@ -108,7 +108,7 @@ function scenario_path(scenario::Integer; version::Integer = DATASET_VERSION)
     isdir(path) || throw(
         SimBenchDataError(
             "scenario $scenario folder not found: $path\n" *
-            "Contents of $(data_dir()): $(join(readdir(data_dir()), ", "))",
+                "Contents of $(data_dir()): $(join(readdir(data_dir()), ", "))",
         ),
     )
 
@@ -116,7 +116,7 @@ function scenario_path(scenario::Integer; version::Integer = DATASET_VERSION)
     isempty(absent) || throw(
         SimBenchDataError(
             "scenario $scenario at $path is missing required tables: " *
-            join(absent, ", "),
+                join(absent, ", "),
         ),
     )
 
