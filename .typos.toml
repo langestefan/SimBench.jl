@@ -1,6 +1,13 @@
+# The SimBench CSV format uses abbreviated column names that the spell checker reads as
+# typos. These are file-format identifiers: "correcting" one silently changes the schema
+# and stops the reader matching the published headers, so they are pinned here.
 [default.extend-words]
+# vmSetp, vaSetp: voltage magnitude and angle setpoint.
+Setp = "Setp"
+# tapNeutr: neutral tap position.
+Neutr = "Neutr"
 
 [type.ipynb]
-# It detects false possitives in the base64 encoded images inside notebooks
+# It detects false positives in the base64 encoded images inside notebooks
 extend-glob = ["*.ipynb"]
 check-file = false
