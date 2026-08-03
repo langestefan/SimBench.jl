@@ -9,6 +9,9 @@ exclude = [
   "^https://github.com/.*/releases/tag/v.*$",
   # Resolves only once the package is registered and docs are first deployed.
   "^https://langestefan\\.github\\.io/SimBench\\.jl.*$",
+  # Images that @example blocks generate at docs build time; they do not exist in the
+  # source tree.
+  "^file://.*/docs/src/.*\\.svg$",
 ]
 
 exclude_path = ["docs/build"]
