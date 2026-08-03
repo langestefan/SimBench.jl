@@ -43,6 +43,10 @@ const PP_TRAFO = (
         if DATASET !== nothing
             grid = SimBench.read_grid("1-LV-rural1--0-no_sw"; nrows = 1)
             @test_throws ArgumentError SimBench.powermodels_data(grid; pq_as = :nope)
+            @test_throws ArgumentError SimBench.powermodels_data(grid; dc_as = :nope)
+            @test_throws ArgumentError SimBench.powermodels_data(
+                grid; storage_as = :nope
+            )
         end
     end
 
@@ -183,6 +187,63 @@ const PP_TRAFO = (
                 @test rad2deg(br["angmax"]) >= 150
                 @test rad2deg(br["angmin"]) <= -150
             end
+        end
+    end
+
+    @testset "dc lines and storage" begin
+        if DATASET === nothing
+            @info "Skipping dc line tests: dataset unavailable."
+        else
+            # The scenario 1 extra-high-voltage grid has two HVDC links and four
+            # storage units.
+            grid = SimBench.read_grid("1-EHV-mixed--1-no_sw"; nrows = 1)
+            dc_types = Set(skipmissing(grid[:DCLineType].id))
+            dc_ids = Set(
+                id for (id, t) in zip(grid[:Line].id, grid[:Line].type) if
+                    !ismissing(t) && t in dc_types
+            )
+            n_dc = length(dc_ids)
+            @test n_dc == 2
+
+            # By default each link becomes a pair of voltage-controlled generators,
+            # from pandapower's own power flow representation.
+            data = SimBench.powermodels_data(grid)
+            dcgens = [
+                g for g in values(data["gen"]) if g["source_id"][1] == "dcline"
+            ]
+            @test length(dcgens) == 2 * n_dc
+            @test isempty(data["dcline"])
+            for g in dcgens
+                @test g["vg"] > 1
+                @test data["bus"]["$(g["gen_bus"])"]["bus_type"] in (2, 3)
+                @test data["bus"]["$(g["gen_bus"])"]["vm"] == g["vg"]
+            end
+            # The DC rows do not appear among the AC branches.
+            @test all(b["name"] ∉ dc_ids for b in values(data["branch"]))
+            @test Set(g["name"] for g in dcgens) == dc_ids
+
+            # As PowerModels dcline components instead.
+            as_dc = SimBench.powermodels_data(grid; dc_as = :dcline)
+            @test length(as_dc["dcline"]) == n_dc
+            @test length(as_dc["gen"]) == length(data["gen"]) - 2 * n_dc
+            for dcl in values(as_dc["dcline"])
+                @test dcl["br_status"] == 1
+                @test dcl["loss1"] == 0.012
+                @test dcl["vf"] > 1 && dcl["vt"] > 1
+                # Losses tie the two setpoints together, per unit.
+                @test dcl["pt"] ≈ dcl["loss0"] - (1 - dcl["loss1"]) * dcl["pf"]
+            end
+
+            # Storage as components by default, as equivalent loads on request.
+            @test length(data["storage"]) == nrow(grid[:Storage])
+            as_load = SimBench.powermodels_data(grid; storage_as = :load)
+            @test isempty(as_load["storage"])
+            stloads = [
+                l for l in values(as_load["load"]) if l["source_id"][1] == "storage"
+            ]
+            @test length(stloads) == nrow(grid[:Storage])
+            # These units discharge, so as loads they inject.
+            @test all(l["pd"] < 0 for l in stloads)
         end
     end
 

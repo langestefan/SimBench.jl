@@ -59,6 +59,18 @@ the bus base voltages. `per_unit` is `true`, so PowerModels leaves it alone.
   or slack buses, as `PowerModels.compute_ac_pf` requires. `:gen` instead emits a
   generator with `pmin == pmax`, which suits optimal power flow but leaves generators on
   PQ buses.
+- `dc_as = :gen`: how to represent an HVDC link, a `Line` whose type resolves in
+  `DCLineType`, present in scenarios 1 and 2. `:gen` replaces it by two
+  voltage-controlled generators, the from side consuming the scheduled power and the to
+  side injecting it minus losses, exactly as pandapower's power flow does internally;
+  this is the form `PowerModels.compute_ac_pf` can solve, since its Newton-Raphson
+  reads no `dcline` component. `:dcline` emits a PowerModels `dcline` component
+  instead, which `solve_ac_pf` and the OF problems understand.
+- `storage_as = :storage`: how to represent a storage unit, present in scenarios 1
+  and 2. `:storage` emits PowerModels `storage` components, whose fixed `ps` and `qs`
+  withdrawals `PowerModels.compute_ac_pf` counts just as pandapower counts a storage's
+  `p_mw`. The JuMP power flow `solve_ac_pf` rejects storage outright, so `:load` turns
+  each unit into an equivalent fixed load, positive power charging.
 - `angle_limit = 360.0`: voltage angle difference limit on every branch, in degrees.
   Must exceed the largest transformer phase shift, which is 150 degrees for the Dyn5
   units throughout the low and medium voltage grids, or the case is infeasible.
@@ -87,6 +99,8 @@ function powermodels_data(
         topology::Union{Nothing, Topology} = nothing,
         coupler_impedance::Real = 1.0e-5,
         pq_as::Symbol = :load,
+        dc_as::Symbol = :gen,
+        storage_as::Symbol = :storage,
         angle_limit::Real = DEFAULT_ANGLE_LIMIT,
         seed_angles::Bool = true,
         single_reference::Bool = false,
@@ -94,6 +108,12 @@ function powermodels_data(
     )
     pq_as in (:load, :gen) || throw(
         ArgumentError("pq_as must be :load or :gen, got :$pq_as"),
+    )
+    dc_as in (:gen, :dcline) || throw(
+        ArgumentError("dc_as must be :gen or :dcline, got :$dc_as"),
+    )
+    storage_as in (:storage, :load) || throw(
+        ArgumentError("storage_as must be :storage or :load, got :$storage_as"),
     )
     topo = topology === nothing ? resolve_topology(grid; kwargs...) : topology
     tables = grid.tables
@@ -118,10 +138,11 @@ function powermodels_data(
     _add_loads!(data, tables[:Load], topo)
     _add_generation!(data, tables, topo, pq_as)
     _add_lines!(data, tables, topo, base_kv, baseMVA, angle_limit)
+    _add_dclines!(data, tables, topo, dc_as)
     _add_transformers!(data, tables, topo, base_kv, baseMVA, angle_limit)
     _add_couplers!(data, topo, coupler_impedance, angle_limit)
     _add_shunts!(data, tables[:Shunt], topo, base_kv, baseMVA)
-    _add_storage!(data, tables[:Storage], topo)
+    _add_storage!(data, tables[:Storage], topo, storage_as)
     single_reference && _demote_extra_references!(data)
     seed_angles && _seed_angles!(data)
     _to_per_unit!(data, baseMVA)
@@ -328,6 +349,14 @@ function _to_per_unit!(data, baseMVA)
     end
     for (_, shunt) in data["shunt"], k in ("gs", "bs")
         shunt[k] = rescale(shunt[k])
+    end
+    for (_, dcl) in data["dcline"],
+            k in (
+                "pf", "pt", "loss0", "pminf", "pmaxf", "pmint", "pmaxt",
+                "qminf", "qmaxf", "qmint", "qmaxt",
+            )
+
+        dcl[k] = rescale(dcl[k])
     end
     for (_, gen) in data["gen"], k in ("pg", "qg", "pmin", "pmax", "qmin", "qmax")
         gen[k] = rescale(gen[k])
@@ -593,6 +622,104 @@ function _add_lines!(data, tables, topo::Topology, base_kv, baseMVA, angle_limit
 end
 
 """
+Add the HVDC links, the `Line` rows whose type resolves in `DCLineType`.
+
+With `dc_as = :gen` each link becomes two voltage-controlled generators, ported from
+pandapower's `_add_dcline_gens`: the from side consumes the scheduled power `pDCLine`,
+the to side injects it minus the losses `abs(p) * relPLosses / 100 + fixPLosses`, and
+both endpoints hold their node's voltage setpoint, so they turn into PV buses. With
+`dc_as = :dcline` each link becomes a PowerModels `dcline` component carrying the same
+setpoints and losses.
+"""
+function _add_dclines!(data, tables, topo::Topology, dc_as::Symbol)
+    line, dctype = tables[:Line], tables[:DCLineType]
+    types = Dict(id => i for (i, id) in enumerate(dctype.id) if !ismissing(id))
+    isempty(types) && return
+
+    node = tables[:Node]
+    vm_of = Dict{String, Float64}()
+    for i in 1:nrow(node)
+        ismissing(node.id[i]) || (vm_of[node.id[i]] = _val(node.vmSetp[i], 1.0))
+    end
+
+    n_dc = 0
+    for i in 1:nrow(line)
+        type = line.type[i]
+        (ismissing(type) || !haskey(types, type)) && continue
+        f = get(topo.bus_of, line.nodeA[i], nothing)
+        t = get(topo.bus_of, line.nodeB[i], nothing)
+        (f === nothing || t === nothing) && continue
+        r = types[type]
+
+        p = _val(dctype.pDCLine[r], 0.0)
+        loss1 = _val(dctype.relPLosses[r], 0.0) / 100
+        loss0 = _val(dctype.fixPLosses[r], 0.0)
+        delivered = abs(p) * (1 - loss1) - loss0
+        pmax = _val(dctype.pMax[r], UNLIMITED_P)
+        vf = get(vm_of, line.nodeA[i], 1.0)
+        vt = get(vm_of, line.nodeB[i], 1.0)
+        qminf = _val(dctype.qMinA[r], -UNLIMITED_Q)
+        qmaxf = _val(dctype.qMaxA[r], UNLIMITED_Q)
+        qmint = _val(dctype.qMinB[r], -UNLIMITED_Q)
+        qmaxt = _val(dctype.qMaxB[r], UNLIMITED_Q)
+        status = topo.line_closed[i] ? 1 : 0
+        id = line.id[i]
+        n_dc += 1
+
+        if dc_as === :gen
+            # The scheduled power may point either way; pandapower resolves the sign
+            # into which end consumes and which delivers.
+            p_from, p_to, pmin_to, pmax_to = if p > 0
+                -p, delivered, 0.0, pmax
+            else
+                delivered, -abs(p), -pmax, 0.0
+            end
+            for (bus, pg, vg, pmin, pmax_g, qmin, qmax, side) in (
+                    (t, p_to, vt, pmin_to, pmax_to, qmint, qmaxt, "to"),
+                    (f, p_from, vf, -pmax_to, -pmin_to, qminf, qmaxf, "from"),
+                )
+                idx = length(data["gen"]) + 1
+                data["gen"]["$idx"] = Dict{String, Any}(
+                    "index" => idx,
+                    "gen_bus" => bus,
+                    "pg" => pg, "qg" => 0.0, "vg" => vg,
+                    "pmin" => pmin, "pmax" => pmax_g,
+                    "qmin" => qmin, "qmax" => qmax,
+                    "mbase" => data["baseMVA"],
+                    "gen_status" => status,
+                    "name" => id,
+                    "source_id" => Any["dcline", id, side],
+                    "model" => 2, "ncost" => 0, "cost" => Float64[],
+                )
+                if status == 1
+                    b = data["bus"]["$bus"]
+                    b["bus_type"] == BUS_REF || (b["bus_type"] = BUS_PV)
+                    b["vm"] = vg
+                end
+            end
+        else
+            data["dcline"]["$n_dc"] = Dict{String, Any}(
+                "index" => n_dc,
+                "f_bus" => f, "t_bus" => t,
+                "br_status" => status,
+                # `pt` is the flow into the line at the to end, so delivery is negative.
+                "pf" => p, "pt" => -delivered,
+                "qf" => 0.0, "qt" => 0.0,
+                "vf" => vf, "vt" => vt,
+                "pminf" => -pmax, "pmaxf" => pmax,
+                "pmint" => -pmax, "pmaxt" => pmax,
+                "qminf" => qminf, "qmaxf" => qmaxf,
+                "qmint" => qmint, "qmaxt" => qmaxt,
+                "loss0" => loss0, "loss1" => loss1,
+                "name" => id,
+                "source_id" => Any["dcline", id],
+            )
+        end
+    end
+    return
+end
+
+"""
     _t_to_pi(r, x, g, b) -> (r, x, g_shunt, b_shunt)
 
 Convert a transformer's T equivalent to the pi circuit a PowerModels branch describes.
@@ -742,8 +869,35 @@ function _add_shunts!(data, shunt::DataFrame, topo::Topology, base_kv, baseMVA)
     return
 end
 
-"""Add storage units, present in scenarios 1 and 2."""
-function _add_storage!(data, storage::DataFrame, topo::Topology)
+"""
+Add storage units, present in scenarios 1 and 2.
+
+As `:storage` components they take part in `PowerModels.compute_ac_pf`, whose
+Newton-Raphson counts `ps` and `qs` as fixed withdrawals, exactly as pandapower
+counts a storage's `p_mw`. The JuMP power flow `solve_ac_pf` however rejects storage
+outright, so `storage_as = :load` turns each unit into an equivalent fixed load
+instead.
+"""
+function _add_storage!(data, storage::DataFrame, topo::Topology, storage_as::Symbol)
+    if storage_as === :load
+        next = length(data["load"])
+        for i in 1:nrow(storage)
+            bus = get(topo.bus_of, storage.node[i], nothing)
+            bus === nothing && continue
+            next += 1
+            # Positive storage power charges, which consumes, like a load.
+            data["load"]["$next"] = Dict{String, Any}(
+                "index" => next,
+                "load_bus" => bus,
+                "pd" => _val(storage.pStor[i], 0.0),
+                "qd" => _val(storage.qStor[i], 0.0),
+                "status" => 1,
+                "name" => storage.id[i],
+                "source_id" => Any["storage", storage.id[i]],
+            )
+        end
+        return
+    end
     for i in 1:nrow(storage)
         bus = get(topo.bus_of, storage.node[i], nothing)
         bus === nothing && continue

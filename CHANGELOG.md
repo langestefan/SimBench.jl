@@ -15,6 +15,11 @@ Notable changes to SimBench.jl are recorded here. The format follows
   voltage level, as the reference implementation does. Validated against it at machine
   precision over four grids spanning both modes
 
+- HVDC links of scenarios 1 and 2 are converted: by default as the generator pair
+  pandapower's power flow uses internally, which `compute_ac_pf` solves, or as
+  PowerModels `dcline` components with `dc_as = :dcline`. `storage_as = :load` turns
+  storage units into equivalent loads for `solve_ac_pf`, which rejects storage
+
 - `powermodels_data`, converting a grid to PowerModels network data. The per-unit values
   match pandapower's internal arrays to floating point noise, and power flow results
   agree with pandapower on every voltage level, the extra-high included

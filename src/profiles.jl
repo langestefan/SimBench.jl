@@ -185,6 +185,9 @@ function apply_profile!(data::AbstractDict, profiles::AbstractDict, t)
             lq === nothing || (load["qd"] = at(lq, id))
         elseif kind == "sgen" && rp !== nothing
             load["pd"] = -at(rp, id)
+        elseif kind == "storage" && sp !== nothing
+            # A storage unit converted with `storage_as = :load`.
+            load["pd"] = at(sp, id)
         end
     end
 
