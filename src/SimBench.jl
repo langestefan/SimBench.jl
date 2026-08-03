@@ -35,6 +35,9 @@ using DataFrames: DataFrame, Not, nrow
 using Dates: DateTime, @dateformat_str
 using LazyArtifacts: LazyArtifacts
 
+export SimBenchGrid, SimBenchCode, all_simbench_codes, read_grid, powermodels_data,
+    absolute_profiles, apply_profile!, apply_study_case!
+
 include("schema.jl")
 include("data_source.jl")
 include("codes.jl")

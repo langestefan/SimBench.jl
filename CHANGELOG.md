@@ -8,6 +8,10 @@ Notable changes to SimBench.jl are recorded here. The format follows
 
 ### Changed
 
+- The core workflow is exported: `SimBenchGrid`, `SimBenchCode`,
+  `all_simbench_codes`, `read_grid`, `powermodels_data`, `absolute_profiles`,
+  `apply_profile!` and `apply_study_case!`. The lower-level layers stay qualified
+
 - A line open at exactly one end stays in service, with its open end on a stub bus,
   matching pandapower's switch model: the line is still energised from the closed end
   and its charging still draws reactive power. This closes the last modelling gap;

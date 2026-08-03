@@ -4,7 +4,15 @@ CurrentModule = SimBench
 
 # API
 
-Nothing is exported yet. Everything below is reached as `SimBench.name`.
+The core workflow is exported: [`SimBenchGrid`](@ref SimBench.SimBenchGrid),
+[`SimBenchCode`](@ref SimBench.SimBenchCode),
+[`all_simbench_codes`](@ref SimBench.all_simbench_codes),
+[`read_grid`](@ref SimBench.read_grid),
+[`powermodels_data`](@ref SimBench.powermodels_data),
+[`absolute_profiles`](@ref SimBench.absolute_profiles),
+[`apply_profile!`](@ref SimBench.apply_profile!) and
+[`apply_study_case!`](@ref SimBench.apply_study_case!). Everything else is reached as
+`SimBench.name`.
 
 ## Module
 
