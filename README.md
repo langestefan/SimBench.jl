@@ -23,8 +23,8 @@ series across every voltage level, which makes it useful for:
 - Time series and study case analysis
 
 > [!WARNING]
-> **Work in progress.** Reading any published benchmark grid by SimBench code and
-> converting it to PowerModels works. Profiles and study cases are not implemented yet.
+> **Work in progress.** All listed features work, but the package is not registered yet
+> and the API may still change.
 
 ## Status
 
@@ -35,7 +35,7 @@ series across every voltage level, which makes it useful for:
 | Grid extraction by SimBench code | ✅ |
 | Switch and auxiliary node resolution | ✅ |
 | PowerModels conversion | ✅ |
-| Profiles and study cases | ⬜ |
+| Profiles and study cases | ✅ |
 | Automatic dataset download | ✅ |
 
 ## Acknowledgement

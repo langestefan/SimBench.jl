@@ -13,9 +13,9 @@ IEE. This package is a Julia port of the [reference
 implementation](https://github.com/e2nIEE/simbench), which targets pandapower.
 
 !!! warning "Work in progress"
-    Reading any published benchmark grid into a [`SimBench.SimBenchGrid`](@ref) and
-    converting it to PowerModels network data works. Applying load and generation
-    profiles and study cases is not implemented yet.
+    Reading any published benchmark grid into a [`SimBench.SimBenchGrid`](@ref),
+    converting it to PowerModels network data, and applying profiles and study cases
+    all work. The package is not registered yet and the API may still change.
 
 ## Installation
 

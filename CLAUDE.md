@@ -1,9 +1,10 @@
 # CLAUDE.md
 
-SimBench.jl reads the SimBench benchmark grid dataset (CSV) and converts it to
-PowerModels.jl network data. It is a read-only Julia port of the Python reference
-implementation at `../simbench` (github.com/e2nIEE/simbench), which targets pandapower.
-PowerModels is deliberately not a dependency; the package emits a plain data dict.
+SimBench.jl reads the SimBench benchmark grid dataset (CSV), converts it to
+PowerModels.jl network data, and applies its time series profiles and study cases. It
+is a read-only Julia port of the Python reference implementation at `../simbench`
+(github.com/e2nIEE/simbench), which targets pandapower. PowerModels is deliberately not
+a dependency; the package emits a plain data dict.
 
 ## Commands
 
@@ -48,6 +49,11 @@ CSV files -> SimBenchGrid (DataFrames, SimBench units) -> PowerModels dict (per 
   ignores `va`/`vm` for that): angles from shift propagation plus a DC power flow,
   magnitudes at load buses from the mean controlled-bus setpoint. Both are load
   bearing; grids do not converge without them.
+- `profiles.jl`: `absolute_profiles` (relative profiles times base powers, MW/MVAr),
+  `apply_profile!` and `apply_study_case!` (snapshot a PowerModels dict, matching
+  elements through `source_id` and dividing by `baseMVA`). `read_grid` drops unused
+  profile columns and reduces StudyCases to the grid's voltage level, as upstream's
+  `get_simbench_net` does.
 
 Nothing is exported; the API is `SimBench.`-qualified calls.
 

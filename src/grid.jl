@@ -71,6 +71,10 @@ A `complete_data` code reads a whole scenario unfiltered. Any other code reads t
 scenario and then extracts the selected grid from it, so reading several grids of one
 scenario costs a full parse each time.
 
+Matching the reference implementation's `get_simbench_net`, profile columns no element
+of the grid uses are dropped ([`filter_unapplied_profiles!`](@ref)) and the study cases
+are reduced to the grid's own voltage level ([`filter_study_cases!`](@ref)).
+
 # Keywords
 - `nrows`: read at most this many rows of each profile table.
 - `input_path`: read from this folder instead of the configured dataset location.
@@ -93,6 +97,8 @@ function read_grid(
 
     tables = read_tables(dir; nrows)
     is_complete_data(code) || (tables = extract_tables(tables, code))
+    filter_unapplied_profiles!(tables)
+    filter_study_cases!(tables)
     return SimBenchGrid(code, tables)
 end
 

@@ -12,8 +12,9 @@ IEE. This package is a Julia port of the reference implementation at
 The dataset itself is licensed under the ODbL; this package's code is BSD-3-Clause.
 
 !!! note "Work in progress"
-    Reading any published benchmark grid and converting it to PowerModels network data
-    works. Applying load and generation profiles and study cases is not implemented yet.
+    Reading any published benchmark grid, converting it to PowerModels network data,
+    and applying profiles and study cases all work. The package is not registered yet
+    and the API may still change.
 
 # Dataset location
 
@@ -30,7 +31,7 @@ module SimBench
 
 using Artifacts: @artifact_str
 using CSV: CSV
-using DataFrames: DataFrame, nrow
+using DataFrames: DataFrame, Not, nrow
 using Dates: DateTime, @dateformat_str
 using LazyArtifacts: LazyArtifacts
 
@@ -43,5 +44,6 @@ include("extract.jl")
 include("grid.jl")
 include("switches.jl")
 include("powermodels.jl")
+include("profiles.jl")
 
 end # module

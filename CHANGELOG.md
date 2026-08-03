@@ -8,9 +8,16 @@ Notable changes to SimBench.jl are recorded here. The format follows
 
 ### Added
 
+- Time series and study cases: `absolute_profiles` turns the relative profiles into
+  absolute MW and MVAr per element, `apply_profile!` and `apply_study_case!` set a
+  PowerModels case to a time step or to one of the six study cases. `read_grid` now
+  drops profile columns no element uses and reduces the study cases to the grid's
+  voltage level, as the reference implementation does. Validated against it at machine
+  precision over four grids spanning both modes
+
 - `powermodels_data`, converting a grid to PowerModels network data. The per-unit values
   match pandapower's internal arrays to floating point noise, and power flow results
-  agree to 1e-8 or better on the low and high voltage grids
+  agree with pandapower on every voltage level, the extra-high included
 
 - The dataset downloads itself on first use as a lazy `Pkg` artifact, pointing at the
   upstream project's PyPI release rather than a copy hosted here

@@ -41,6 +41,17 @@ SimBench.DEFAULT_BASE_MVA
 SimBench.DEFAULT_ANGLE_LIMIT
 ```
 
+## Profiles and study cases
+
+```@docs
+SimBench.absolute_profiles
+SimBench.apply_profile!
+SimBench.apply_study_case!
+SimBench.filter_unapplied_profiles!
+SimBench.filter_study_cases!
+SimBench.PROFILE_ELEMENTS
+```
+
 ## Topology
 
 ```@docs
