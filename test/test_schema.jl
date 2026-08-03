@@ -56,6 +56,7 @@
     @testset "filenames" begin
         @test SimBench.csv_filename(:Node) == "Node.csv"
         @test SimBench.csv_filename(:TransformerType) == "TransformerType.csv"
-        @test SimBench.table_path("/data/grid", :Line) == "/data/grid/Line.csv"
+        @test SimBench.table_path("/data/grid", :Line) ==
+            joinpath("/data/grid", "Line.csv")
     end
 end

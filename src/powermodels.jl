@@ -16,7 +16,8 @@
 """Default system base power in MVA."""
 const DEFAULT_BASE_MVA = 100.0
 
-"""Bus type codes used by MATPOWER and PowerModels."""
+# Bus type codes used by MATPOWER and PowerModels. A docstring cannot attach to a
+# tuple-destructuring const; Julia nightly makes that a hard error.
 const BUS_PQ, BUS_PV, BUS_REF = 1, 2, 3
 
 """
