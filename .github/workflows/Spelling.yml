@@ -14,6 +14,8 @@ jobs:
       - name: Checkout Actions Repository
         uses: actions/checkout@v7
       - name: Check spelling
-        uses: crate-ci/typos@master
+        # Pinned to the v1.48.0 release commit. Tracking master breaks whenever
+        # upstream bumps its version reference before publishing the release binaries.
+        uses: crate-ci/typos@bee27e3a4fd1ea2111cf90ab89cd076c870fce14 # v1.48.0
         with:
           config: .typos.toml
