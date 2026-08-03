@@ -13,9 +13,8 @@ IEE. This package is a Julia port of the [reference
 implementation](https://github.com/e2nIEE/simbench), which targets pandapower.
 
 !!! warning "Work in progress"
-    This is phase 1 of the port: package skeleton and dataset location only. Reading grids
-    and converting them to PowerModels is not implemented yet. See `PLAN.md` in the
-    repository for the full roadmap.
+    Dataset location and the table inventory are in place. Reading grids and converting
+    them to PowerModels is not implemented yet.
 
 ## Installation
 
@@ -26,10 +25,9 @@ Pkg.add(url = "https://github.com/langestefan/SimBench.jl")
 
 ## Dataset location
 
-The SimBench CSV dataset is 378 MB and is not bundled with the package. Lazy download via
-`Pkg` artifacts arrives in phase 7. Until then, point the package at a local copy — the
-`simbench/networks` directory of a [`simbench`](https://github.com/e2nIEE/simbench)
-checkout:
+The SimBench CSV dataset is 378 MB and is not bundled with the package. Automatic download
+is not implemented yet, so point the package at a local copy: the `simbench/networks`
+directory of a [`simbench`](https://github.com/e2nIEE/simbench) checkout.
 
 ```julia
 using SimBench
@@ -55,7 +53,7 @@ onto it, and are the only ones shipping the `Storage`, `StorageProfile` and `DCL
 tables ([`SimBench.SCENARIO_TABLES`](@ref)).
 
 Individual benchmark grids are selected from this complete dataset by *SimBench code*,
-e.g. `1-MVLV-urban-all-0-sw`. Code parsing and grid extraction arrive in phases 2 and 3.
+for example `1-MVLV-urban-all-0-sw`.
 
 ## License
 

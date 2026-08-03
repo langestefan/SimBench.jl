@@ -1,8 +1,8 @@
 # Locating the SimBench CSV dataset on disk.
 #
-# Phase 1 resolves the dataset through the SIMBENCH_DATA_DIR environment variable or an
-# explicit `set_data_dir!` call. Phase 7 adds lazy Pkg artifacts so that the dataset is
-# downloaded on demand and neither is required.
+# The dataset is currently resolved through the SIMBENCH_DATA_DIR environment variable or
+# an explicit `set_data_dir!` call. Lazy Pkg artifacts will later download it on demand so
+# that neither is required.
 
 """
     SimBenchDataError <: Exception

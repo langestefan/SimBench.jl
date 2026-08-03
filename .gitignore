@@ -1,4 +1,4 @@
-# Resolved dependency state — libraries do not pin a Manifest.
+# Resolved dependency state. Libraries do not pin a Manifest.
 # Unanchored, so this also covers docs/ and test/.
 Manifest.toml
 Manifest-v*.toml

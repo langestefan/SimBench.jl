@@ -1,5 +1,5 @@
-SimBench.jl — licensing
-=======================
+SimBench.jl licensing
+=====================
 
 This repository contains two separately licensed things: the Julia source code, and the
 SimBench dataset it reads.

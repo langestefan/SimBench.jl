@@ -1,7 +1,7 @@
 # SimBench CSV format: table inventory.
 #
 # Ported from simbench/converter/format_information.py (csv_tablenames).
-# Column names and column types are added in phase 2.
+# Column names and column types are added later.
 
 """Element tables: one row per grid component."""
 const ELEMENT_TABLES = (
@@ -117,7 +117,7 @@ const REQUIRED_TABLES = (
 Tables shipped only by the future scenarios (1 and 2), not by the base scenario 0.
 
 Scenario 0 is the present-day grid; scenarios 1 and 2 project storage and HVDC build-out
-onto it. Scenario 2 carries 6,533 `Storage` units — more than it has `RES` units — so
+onto it. Scenario 2 carries 6,533 `Storage` units, more than it has `RES` units, so
 these are load-bearing tables, not schema padding.
 """
 const SCENARIO_TABLES = (:Storage, :StorageProfile, :DCLineType)

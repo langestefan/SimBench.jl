@@ -1,13 +1,13 @@
 # Contributing
 
 Contributions are welcome. The package is an in-progress port, so the most useful
-contributions right now are on the phases that are not done yet — see
-[`PLAN.md`](https://github.com/langestefan/SimBench.jl/blob/main/PLAN.md) for the roadmap.
+contributions right now are on the parts that are not implemented yet: CSV parsing, grid
+extraction, the PowerModels conversion, and time series handling.
 
 ## Workflow
 
-We work in the order: open an issue → discuss if needed → open a pull request. For a small
-fix an issue is not required.
+We work in the order: open an issue, discuss if needed, then open a pull request. For a
+small fix an issue is not required.
 
 1. Fork the repository and create a branch off `main`.
 2. Make your change, with tests.
@@ -28,7 +28,7 @@ for Julia formatting, ExplicitImports, markdownlint, yamllint and typos. Install
 
 !!! note
     The `no-commit-to-branch` hook blocks direct commits to `main` once you have run
-    `pre-commit install`. That is intentional — changes go through pull requests.
+    `pre-commit install`. That is intentional, since changes go through pull requests.
 
 ## Tests that need the dataset
 
@@ -43,6 +43,5 @@ SIMBENCH_DATA_DIR=/path/to/simbench/simbench/networks julia --project=. -e 'usin
 ## Correctness
 
 The conversion from SimBench CSV to PowerModels reimplements the per-unit conversion that
-pandapower performs internally, so changes to `src/powermodels.jl` need to be validated
-numerically against pandapower's power-flow results rather than by inspection. See
-`PLAN.md` §6.
+pandapower performs internally, so changes to the conversion need to be validated
+numerically against pandapower's power-flow results rather than by inspection.

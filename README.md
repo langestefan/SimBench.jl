@@ -23,9 +23,20 @@ series across every voltage level, which makes it useful for:
 - Time series and study case analysis
 
 > [!WARNING]
-> **Work in progress — phase 1 of 8.** Package skeleton and dataset location only.
-> Reading grids and converting them to PowerModels is not implemented yet. See
-> [`PLAN.md`](PLAN.md) for the roadmap.
+> **Work in progress.** Dataset location and the table inventory are in place. Reading
+> grids and converting them to PowerModels is not implemented yet.
+
+## Status
+
+| Feature | Status |
+| ------------------------------------------- | ------ |
+| Dataset location and table inventory | ✅ |
+| CSV parsing, SimBench codes, `SimBenchGrid` | ⬜ |
+| Grid extraction by SimBench code | ⬜ |
+| Switch and auxiliary node resolution | ⬜ |
+| PowerModels conversion | ⬜ |
+| Profiles and study cases | ⬜ |
+| Automatic dataset download | ⬜ |
 
 ## Acknowledgement
 
@@ -44,9 +55,9 @@ Pkg.add(url = "https://github.com/langestefan/SimBench.jl")
 
 ## Dataset
 
-The SimBench CSV dataset is 378 MB and is not bundled with the package. Lazy download via
-`Pkg` artifacts arrives in phase 7. Until then, point the package at a local copy — the
-`simbench/networks` directory of a [simbench](https://github.com/e2nIEE/simbench) checkout:
+The SimBench CSV dataset is 378 MB and is not bundled with the package. Automatic download
+is not implemented yet, so point the package at a local copy: the `simbench/networks`
+directory of a [simbench](https://github.com/e2nIEE/simbench) checkout.
 
 ```julia
 julia> using SimBench
@@ -73,28 +84,15 @@ precedence over it. Tests that need the dataset skip themselves when it is not c
 
 | Scenario | Folder | Size | Extra tables |
 | -------- | -------------------------------- | ------ | ---------------------------------------- |
-| 0 | `1-complete_data-mixed-all-0-sw` | 111 MB | — |
+| 0 | `1-complete_data-mixed-all-0-sw` | 111 MB | none |
 | 1 | `1-complete_data-mixed-all-1-sw` | 133 MB | `Storage`, `StorageProfile`, `DCLineType` |
 | 2 | `1-complete_data-mixed-all-2-sw` | 134 MB | `Storage`, `StorageProfile`, `DCLineType` |
 
 Scenario 0 is the present-day grid. Scenarios 1 and 2 project storage and HVDC build-out
-onto it — scenario 2 carries 6,533 storage units, more than it has renewable generators.
+onto it, and scenario 2 carries 6,533 storage units, more than it has renewable generators.
 
 Individual benchmark grids are selected from this complete dataset by *SimBench code*, for
-example `1-MVLV-urban-all-0-sw`. Code parsing and grid extraction arrive in phases 2 and 3.
-
-## Roadmap
-
-| Phase | | Status |
-| ----- | ------------------------------------------- | ------ |
-| 1 | Skeleton, CI, dataset location | ✅ |
-| 2 | CSV parsing, SimBench codes, `SimBenchGrid` | ⬜ |
-| 3 | Subnet extraction by SimBench code | ⬜ |
-| 4 | Switch and auxiliary-node resolution | ⬜ |
-| 5 | PowerModels conversion (per-unit, taps) | ⬜ |
-| 6 | Profiles and study cases | ⬜ |
-| 7 | Lazy `Pkg` artifacts for the dataset | ⬜ |
-| 8 | Docs, tutorials, General registry | ⬜ |
+example `1-MVLV-urban-all-0-sw`.
 
 ## Design
 
@@ -110,7 +108,7 @@ CSV files ──▶ SimBenchGrid ──▶ PowerModels data dict ──▶ solve
 Unlike the Python original there is no pandapower in the middle. pandapower performs the
 per-unit conversion internally in `pd2ppc`, whereas PowerModels expects per-unit input, so
 that layer is reimplemented here rather than ported. It is cross-validated numerically
-against pandapower's power-flow results — see [`PLAN.md`](PLAN.md) §6.
+against pandapower's power-flow results.
 
 ## License
 
@@ -122,7 +120,7 @@ carries the ODbL's attribution and share-alike obligations. See [LICENSE](LICENS
 
 If you use SimBench.jl, cite it using the metadata in
 [CITATION.cff](https://github.com/langestefan/SimBench.jl/blob/main/CITATION.cff). Please
-also cite the SimBench dataset and project itself, which this package only reads — see
+also cite the SimBench dataset and project itself, which this package only reads. See
 [simbench.net](https://simbench.net).
 
 ## Contributing

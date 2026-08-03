@@ -5,9 +5,9 @@ version = "0.1.0-DEV"
 
 [deps]
 
-# CSV, DataFrames and PowerModels are added in phases 2 and 5, when code actually loads
-# them. Resolution against julia 1.10+ was verified up front: CSV 0.10.16,
-# DataFrames 1.8.2, PowerModels 0.21.6.
+# CSV, DataFrames and PowerModels are added once code actually loads them. Resolution
+# against julia 1.10+ was verified up front: CSV 0.10.16, DataFrames 1.8.2,
+# PowerModels 0.21.6.
 
 [compat]
 Aqua = "0.8"
