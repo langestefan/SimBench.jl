@@ -160,6 +160,17 @@ const PP_TRAFO = (
             angles = rad2deg.(b["va_start"] for b in values(seeded["bus"]))
             @test minimum(angles) < -140
             @test maximum(angles) <= 0.001
+
+            # Load buses start at the mean of the controlled-bus setpoints, matching
+            # pandapower's "auto" initialisation. Starting them at 1.0 next to buses
+            # held near 1.09 pu puts an artificial voltage gradient across every line,
+            # which is what kept Newton-Raphson from converging on the EHV grids.
+            ctrl = [b["vm"] for b in values(seeded["bus"]) if b["bus_type"] != 1]
+            starts = unique(
+                b["vm_start"] for b in values(seeded["bus"]) if b["bus_type"] == 1
+            )
+            @test length(starts) == 1
+            @test only(starts) ≈ sum(ctrl) / length(ctrl)
         end
     end
 

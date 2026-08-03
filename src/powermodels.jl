@@ -61,9 +61,10 @@ the bus base voltages. `per_unit` is `true`, so PowerModels leaves it alone.
 - `angle_limit = 360.0`: voltage angle difference limit on every branch, in degrees.
   Must exceed the largest transformer phase shift, which is 150 degrees for the Dyn5
   units throughout the low and medium voltage grids, or the case is infeasible.
-- `seed_angles = true`: give each bus a starting angle that accounts for the transformer
-  phase shifts between it and the reference bus. Without this the case is sound but no
-  solver reaches its solution, since everything starts 150 degrees away.
+- `seed_angles = true`: give each bus a starting voltage the solver can converge from.
+  Angles account for the transformer phase shifts and a DC power flow; magnitudes at
+  load buses start at the mean of the controlled-bus setpoints. Without this the case is
+  sound but no solver reaches its solution, since everything starts 150 degrees away.
 - `single_reference = false`: when true, keeps one reference bus per connected component
   and demotes any others to PV. SimBench shares balancing duty between several `vavm`
   elements using the `dspf` participation factors, which PowerModels cannot express.
@@ -173,7 +174,7 @@ function _demote_extra_references!(data)
 end
 
 """
-Give every bus a starting voltage angle that accounts for transformer phase shifts.
+Give every bus a starting voltage that the solver can converge from.
 
 Without this the whole network starts at the reference angle, which is far from any
 solution once a transformer shifts by 150 degrees, as the Dyn5 units throughout the low
@@ -181,7 +182,9 @@ and medium voltage grids do. Both `PowerModels.compute_ac_pf` and `solve_ac_pf` 
 such a start even though the case itself is sound.
 
 Angles are propagated outward from each reference bus over in-service branches,
-subtracting each transformer's shift. This is only a starting point; the solver moves it.
+subtracting each transformer's shift, then refined with a DC power flow. Voltage
+magnitudes at load buses start at the mean of the controlled-bus setpoints. This is only
+a starting point; the solver moves it.
 """
 function _seed_angles!(data)
     # Adjacency over in-service branches, carrying the shift in the from-to direction.
@@ -219,11 +222,19 @@ function _seed_angles!(data)
     # degrees through the lines themselves, so refine with a DC power flow.
     _refine_angles_dc!(data)
 
+    # Load buses start at the mean of the controlled-bus setpoints, as pandapower's
+    # "auto" initialisation does, rather than at 1.0. The extra-high-voltage grids hold
+    # their controlled buses near 1.09 pu; starting the load buses at 1.0 next to them
+    # puts a spurious voltage gradient across every line, and the resulting reactive
+    # mismatch throws Newton-Raphson out of the basin.
+    ctrl = [bus["vm"] for (_, bus) in data["bus"] if bus["bus_type"] != BUS_PQ]
+    vm0 = isempty(ctrl) ? 1.0 : sum(ctrl) / length(ctrl)
+
     # PowerModels takes a variable's starting point from the `_start` keys, so setting
     # `va` alone would leave the solver at a flat start regardless.
     for (_, bus) in data["bus"]
         bus["va_start"] = bus["va"]
-        bus["vm_start"] = bus["vm"]
+        bus["vm_start"] = bus["bus_type"] == BUS_PQ ? vm0 : bus["vm"]
     end
     return data
 end
