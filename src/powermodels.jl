@@ -901,6 +901,100 @@ function _add_couplers!(data, topo::Topology, coupler_impedance::Real, angle_lim
     return n
 end
 
+# --- plotting interop ----------------------------------------------------------------
+
+"""
+    attach_coordinates!(data, grid; normalize = true, offset = 0.02) -> data
+
+Attach the dataset's geographic coordinates to the nodal components of `data`.
+
+Writes the `xcoord_1` and `ycoord_1` keys that PowerPlots.jl reads with
+`powerplot(data; fixed = true)`: every bus goes to its node's position from the
+`Coordinates` table, and generators, loads and storage sit next to their bus. A bus
+without a coordinate of its own, such as the stub bus of an open line end, is placed
+at the centre of the network.
+
+With `normalize`, coordinates are centred and scaled to a unit box, with the longitude
+corrected for the latitude so distances keep their geographic aspect. This matters for
+plotting: raw longitude and latitude sit far from the origin, and Vega-Lite's
+quantitative scales include zero, which would squeeze the whole network into one
+corner. `offset` is the distance at which the satellite components sit from their bus,
+as a fraction of the network's larger dimension.
+
+# Examples
+```julia
+using PowerPlots
+grid = read_grid("1-MV-rural--0-no_sw")
+data = powermodels_data(grid)
+SimBench.attach_coordinates!(data, grid)
+powerplot(data; fixed = true)
+```
+"""
+function attach_coordinates!(
+        data::AbstractDict, grid::SimBenchGrid;
+        normalize::Bool = true, offset::Real = 0.02,
+    )
+    node, coords = grid[:Node], grid[:Coordinates]
+    xy = Dict(
+        id => (Float64(x), Float64(y)) for (id, x, y) in
+            zip(coords.id, coords.x, coords.y) if
+            !ismissing(id) && !ismissing(x) && !ismissing(y)
+    )
+    coord_of = Dict{String, Tuple{Float64, Float64}}()
+    for (id, cid) in zip(node.id, node.coordID)
+        (ismissing(id) || ismissing(cid)) && continue
+        haskey(xy, cid) && (coord_of[id] = xy[cid])
+    end
+
+    bus_xy = Dict{Int, Tuple{Float64, Float64}}()
+    for b in values(data["bus"])
+        c = get(coord_of, b["name"], nothing)
+        c === nothing || (bus_xy[b["index"]] = c)
+    end
+    isempty(bus_xy) && return data
+
+    # Buses the Coordinates table does not place go to the centre of the network.
+    xs = [first(c) for c in values(bus_xy)]
+    ys = [last(c) for c in values(bus_xy)]
+    xmid, ymid = (minimum(xs) + maximum(xs)) / 2, (minimum(ys) + maximum(ys)) / 2
+    for b in values(data["bus"])
+        haskey(bus_xy, b["index"]) || (bus_xy[b["index"]] = (xmid, ymid))
+    end
+
+    aspect = normalize ? cosd(ymid) : 1.0
+    span = max(
+        (maximum(xs) - minimum(xs)) * aspect, maximum(ys) - minimum(ys), 1.0e-12
+    )
+    place(c) = if normalize
+        ((c[1] - xmid) * aspect / span, (c[2] - ymid) / span)
+    else
+        c
+    end
+    for (i, c) in bus_xy
+        bus_xy[i] = place(c)
+    end
+    for b in values(data["bus"])
+        b["xcoord_1"], b["ycoord_1"] = bus_xy[b["index"]]
+    end
+
+    # Satellite components sit slightly offset from their bus, in different
+    # directions so they stay apart.
+    d = Float64(offset) * (normalize ? 1.0 : span)
+    for (comp, key, sx, sy) in (
+            ("gen", "gen_bus", 1.0, 1.0),
+            ("load", "load_bus", -1.0, -1.0),
+            ("storage", "storage_bus", 1.0, -1.0),
+        )
+        for c in values(data[comp])
+            b = get(bus_xy, c[key], nothing)
+            b === nothing && continue
+            c["xcoord_1"] = b[1] + sx * d
+            c["ycoord_1"] = b[2] + sy * d
+        end
+    end
+    return data
+end
+
 # --- shunts and storage ---------------------------------------------------------------
 
 """Add shunts. No published SimBench scenario has any, but the format allows them."""

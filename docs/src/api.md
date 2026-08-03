@@ -46,6 +46,7 @@ SimBench.TWO_SIDED_TABLES
 
 ```@docs
 SimBench.powermodels_data
+SimBench.attach_coordinates!
 SimBench.DEFAULT_BASE_MVA
 SimBench.DEFAULT_ANGLE_LIMIT
 ```

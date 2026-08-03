@@ -25,6 +25,10 @@ Notable changes to SimBench.jl are recorded here. The format follows
 
 ### Added
 
+- `attach_coordinates!`, placing every bus, generator, load and storage unit at its
+  geographic position from the `Coordinates` table in the form PowerPlots.jl reads,
+  and a documentation page plotting the grids with it
+
 - `read_grid(...; cache = true)` keeps the parsed scenario in memory, so reading many
   grids of one scenario parses the CSV files once instead of once per grid.
   `clear_scenario_cache!` frees it

@@ -256,6 +256,38 @@ const PP_TRAFO = (
         end
     end
 
+    @testset "attach_coordinates!" begin
+        if DATASET !== nothing
+            grid = SimBench.read_grid("1-MV-rural--0-no_sw"; nrows = 1, cache = true)
+            data = SimBench.powermodels_data(grid)
+            SimBench.attach_coordinates!(data, grid)
+
+            # Every nodal component is placed, normalised into the unit box.
+            for comp in ("bus", "gen", "load", "storage"), c in values(data[comp])
+                @test haskey(c, "xcoord_1") && haskey(c, "ycoord_1")
+            end
+            xs = [b["xcoord_1"] for b in values(data["bus"])]
+            ys = [b["ycoord_1"] for b in values(data["bus"])]
+            @test maximum(abs, xs) <= 0.5 + 1.0e-12
+            @test maximum(abs, ys) <= 0.5 + 1.0e-12
+            @test maximum(xs) - minimum(xs) > 0.1
+
+            # A satellite sits offset from its bus.
+            l = first(values(data["load"]))
+            b = data["bus"]["$(l["load_bus"])"]
+            @test l["xcoord_1"] != b["xcoord_1"]
+
+            # Without normalisation the raw coordinates stay, longitude and latitude
+            # in Germany.
+            raw = SimBench.powermodels_data(grid)
+            SimBench.attach_coordinates!(raw, grid; normalize = false)
+            @test all(
+                5 < b["xcoord_1"] < 16 && 47 < b["ycoord_1"] < 56 for
+                    b in values(raw["bus"])
+            )
+        end
+    end
+
     @testset "tap positions are applied" begin
         if DATASET !== nothing
             # This grid's two 110/10 kV transformers sit at tap -1 with a 1.5 percent
