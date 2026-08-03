@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+title: SimBench.jl
+message: >-
+  If you use this software, please cite it using the metadata from this file.
+  Please also cite the SimBench dataset and project itself, which this package
+  only reads: see https://simbench.net.
+type: software
+authors:
+  - given-names: Stefan
+    family-names: de Lange
+repository-code: https://github.com/langestefan/SimBench.jl
+url: https://langestefan.github.io/SimBench.jl/
+license: BSD-3-Clause
+abstract: >-
+  SimBench.jl reads the SimBench benchmark grid dataset and converts it to
+  PowerModels.jl network data. It is a Julia port of the reference
+  implementation at https://github.com/e2nIEE/simbench, which targets
+  pandapower.
+keywords:
+  - power-systems
+  - power-flow
+  - benchmark-grids
+  - simbench
+  - powermodels
+  - julia
