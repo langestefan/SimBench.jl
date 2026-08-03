@@ -9,4 +9,8 @@ using Aqua
 
     include("test_schema.jl")
     include("test_data_source.jl")
+    include("test_codes.jl")
+    include("test_voltlvl.jl")
+    include("test_io.jl")
+    include("test_grid.jl")
 end

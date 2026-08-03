@@ -1,0 +1,112 @@
+# SimBenchGrid: the intermediate representation between the CSV files and PowerModels.
+
+"""
+    SimBenchGrid
+
+A SimBench grid as read from the CSV files: the tables in their published units, with
+names rather than integer indices as identifiers.
+
+This is the layer between parsing and the PowerModels conversion. Values are unchanged
+from the dataset, so powers are in MW and MVAr, line parameters are per kilometre, and
+elements reference each other by the `id` strings of the CSV files.
+
+Every table in [`ALL_TABLES`](@ref) has an entry. Tables the dataset does not ship are
+present but empty, so downstream code never has to test for their existence.
+
+# Fields
+- `code::SimBenchCode`: the grid this represents.
+- `tables::Dict{Symbol, DataFrame}`: the CSV tables, keyed by table name.
+
+# Examples
+```julia
+grid = SimBench.read_grid("1-complete_data-mixed-all-0-sw")
+grid[:Node]              # the Node table
+nrow(grid[:Line])        # 34606
+```
+"""
+struct SimBenchGrid
+    code::SimBenchCode
+    tables::Dict{Symbol, DataFrame}
+end
+
+"""
+    grid[table] -> DataFrame
+
+The named table of `grid`. Throws `KeyError` for a name that is not part of the SimBench
+CSV format.
+"""
+Base.getindex(grid::SimBenchGrid, table::Symbol) = grid.tables[table]
+
+Base.haskey(grid::SimBenchGrid, table::Symbol) = haskey(grid.tables, table)
+Base.keys(grid::SimBenchGrid) = keys(grid.tables)
+
+"""
+    scenario(grid) -> Int
+
+Scenario the grid was read from.
+"""
+scenario(grid::SimBenchGrid) = grid.code.scenario
+
+function Base.show(io::IO, ::MIME"text/plain", grid::SimBenchGrid)
+    println(io, "SimBenchGrid(\"", string(grid.code), "\")")
+    populated = [t for t in ALL_TABLES if nrow(grid.tables[t]) > 0]
+    width = maximum(length ∘ string, populated; init = 0)
+    for t in populated
+        println(io, "  ", rpad(t, width), "  ", nrow(grid.tables[t]), " rows")
+    end
+    n_empty = length(ALL_TABLES) - length(populated)
+    n_empty > 0 && print(io, "  (", n_empty, " empty tables)")
+    return
+end
+
+Base.show(io::IO, grid::SimBenchGrid) =
+    print(io, "SimBenchGrid(\"", string(grid.code), "\")")
+
+"""
+    read_grid(code; nrows=nothing, input_path=nothing) -> SimBenchGrid
+
+Read the grid selected by `code`, which may be a [`SimBenchCode`](@ref) or a code string.
+
+!!! note "Only complete-dataset codes for now"
+    Extracting an individual benchmark grid, e.g. `1-MVLV-urban-all-0-sw`, needs the
+    subnet extraction that is not implemented yet. Until then only `complete_data`
+    codes are accepted, which read a whole scenario unfiltered.
+
+# Keywords
+- `nrows`: read at most this many rows of each profile table.
+- `input_path`: read from this folder instead of the configured dataset location.
+
+# Examples
+```julia
+grid = SimBench.read_grid("1-complete_data-mixed-all-0-sw")
+```
+"""
+function read_grid(
+        code::SimBenchCode; nrows::Union{Nothing, Integer} = nothing,
+        input_path::Union{Nothing, AbstractString} = nothing,
+    )
+    is_complete_data(code) || throw(
+        ArgumentError(
+            "extracting individual grids is not implemented yet, so \"$(string(code))\" " *
+                "cannot be read. Use a complete_data code such as " *
+                "\"$(string(complete_data_code(code.scenario)))\" to read a whole scenario.",
+        ),
+    )
+
+    dir = if input_path === nothing
+        scenario_path(code.scenario; version = code.version)
+    else
+        input_path
+    end
+    return SimBenchGrid(code, read_tables(dir; nrows))
+end
+
+read_grid(code::AbstractString; kwargs...) = read_grid(SimBenchCode(code); kwargs...)
+
+"""
+    read_grid(scenario::Integer; kwargs...) -> SimBenchGrid
+
+Read the complete dataset for `scenario`, equivalent to passing its `complete_data` code.
+"""
+read_grid(scenario::Integer; kwargs...) =
+    read_grid(complete_data_code(scenario); kwargs...)

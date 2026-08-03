@@ -28,7 +28,15 @@ or set the `SIMBENCH_DATA_DIR` environment variable to the same directory.
 """
 module SimBench
 
+using CSV: CSV
+using DataFrames: DataFrame, nrow
+using Dates: DateTime, @dateformat_str
+
 include("schema.jl")
 include("data_source.jl")
+include("codes.jl")
+include("voltlvl.jl")
+include("io.jl")
+include("grid.jl")
 
 end # module
