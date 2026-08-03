@@ -1,6 +1,4 @@
 # Voltage level classification.
-#
-# Ported from simbench/converter/voltLvl.py.
 
 """
 Voltage level names, indexed by their SimBench level number.

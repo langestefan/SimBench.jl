@@ -1,6 +1,4 @@
 # Reading SimBench CSV files into DataFrames.
-#
-# Ported from the reading half of simbench/converter/read_and_write.py.
 
 """Column separator used by the SimBench CSV files."""
 const CSV_DELIM = ';'

@@ -198,7 +198,7 @@ const REFERENCE_EXTRACTIONS = Dict(
             # Read each scenario once and extract from it, rather than re-reading per code.
             by_scenario = Dict(
                 s => SimBench.read_tables(SimBench.scenario_path(s); nrows = 1)
-                for s in (0, 1, 2)
+                    for s in (0, 1, 2)
             )
 
             for (code, expected) in REFERENCE_EXTRACTIONS

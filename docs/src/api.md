@@ -33,6 +33,15 @@ SimBench.GRID_NUMBERS
 SimBench.TWO_SIDED_TABLES
 ```
 
+## Topology
+
+```@docs
+SimBench.Topology
+SimBench.resolve_topology
+SimBench.bus_of
+SimBench.multi_switch_aux_nodes
+```
+
 ## SimBench codes
 
 ```@docs

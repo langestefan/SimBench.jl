@@ -1,6 +1,5 @@
 # SimBench CSV format: table inventory.
 #
-# Ported from simbench/converter/format_information.py (csv_tablenames).
 # Column names and column types are added later.
 
 """Element tables: one row per grid component."""
@@ -146,10 +145,9 @@ csv_filename(table::Symbol) = string(table, ".csv")
 
 # --- column names and types --------------------------------------------------------
 #
-# Ported from format_information.py (all_columns, all_dtypes), with one correction: the
-# reference implementation's StudyCases entry names the first column "Study Cases" and
-# omits "voltLvl" entirely. The published files use "Study Case" and do carry "voltLvl",
-# so the header below follows the data.
+# The reference implementation's StudyCases schema names the first column "Study Cases"
+# and omits "voltLvl" entirely. The published files use "Study Case" and do carry
+# "voltLvl", so the header below follows the data.
 #
 # Profile tables are deliberately absent. Their column sets are per-dataset (scenario 2
 # ships 193 LoadProfile and 321 PowerPlantProfile columns, against the 55 and 1 that

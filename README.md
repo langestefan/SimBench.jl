@@ -33,7 +33,7 @@ series across every voltage level, which makes it useful for:
 | Dataset location and table inventory | ✅ |
 | CSV parsing, SimBench codes, `SimBenchGrid` | ✅ |
 | Grid extraction by SimBench code | ✅ |
-| Switch and auxiliary node resolution | ⬜ |
+| Switch and auxiliary node resolution | ✅ |
 | PowerModels conversion | ⬜ |
 | Profiles and study cases | ⬜ |
 | Automatic dataset download | ⬜ |

@@ -1,7 +1,5 @@
 # Extracting one benchmark grid from the complete dataset, by SimBench code.
 #
-# Ported from simbench/networks/extract_simbench_grids_from_csv.py.
-#
 # Every element in the dataset carries a `subnet` string naming the grid it belongs to,
 # such as "MV1.101" for an element inside that grid, or "MV1.101_LV1.103" for one that
 # couples two grids. Extraction is a matter of deciding which subnet names are wanted
@@ -290,7 +288,7 @@ function extract_tables(tables::Dict{Symbol, DataFrame}, code::SimBenchCode)
 
     return Dict{Symbol, DataFrame}(
         name => extract_table(
-            df, name, hv_subnets, lv_subnets; bus_bus_switches = switches
-        ) for (name, df) in tables
+                df, name, hv_subnets, lv_subnets; bus_bus_switches = switches
+            ) for (name, df) in tables
     )
 end

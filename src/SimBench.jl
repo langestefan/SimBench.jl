@@ -39,5 +39,6 @@ include("voltlvl.jl")
 include("io.jl")
 include("extract.jl")
 include("grid.jl")
+include("switches.jl")
 
 end # module

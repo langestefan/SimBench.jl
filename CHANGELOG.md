@@ -8,6 +8,8 @@ Notable changes to SimBench.jl are recorded here. The format follows
 
 ### Added
 
+- `resolve_topology`, collapsing auxiliary nodes and switches into a bus topology, in
+  both the collapsed and the coupler-preserving variant
 - Grid extraction by SimBench code, validated against the reference implementation over
   19 codes spanning every voltage level: same subnets, row counts and element ids
 - `SimBenchGrid` and `read_grid`, reading any published grid into `DataFrame`s

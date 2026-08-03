@@ -1,7 +1,6 @@
 # SimBench codes: the identifiers that select one benchmark grid from the complete
 # dataset, e.g. "1-MVLV-urban-all-0-sw".
 #
-# Ported from simbench/networks/simbench_code.py.
 
 """
     SimBenchCode

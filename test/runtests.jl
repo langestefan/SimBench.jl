@@ -14,4 +14,5 @@ using Aqua
     include("test_io.jl")
     include("test_extract.jl")
     include("test_grid.jl")
+    include("test_switches.jl")
 end
