@@ -62,14 +62,32 @@ end
 Base.show(io::IO, grid::SimBenchGrid) =
     print(io, "SimBenchGrid(\"", string(grid.code), "\")")
 
+const _SCENARIO_CACHE = Dict{Tuple{String, Int}, Dict{Symbol, DataFrame}}()
+const _SCENARIO_CACHE_LOCK = ReentrantLock()
+
 """
-    read_grid(code; nrows=nothing, input_path=nothing) -> SimBenchGrid
+    clear_scenario_cache!()
+
+Empty the scenario cache filled by `read_grid(...; cache = true)`.
+
+A cached scenario holds the complete parse, profiles included, which reaches several
+hundred megabytes for scenarios 1 and 2.
+"""
+function clear_scenario_cache!()
+    lock(_SCENARIO_CACHE_LOCK) do
+        empty!(_SCENARIO_CACHE)
+    end
+    return nothing
+end
+
+"""
+    read_grid(code; nrows=nothing, input_path=nothing, cache=false) -> SimBenchGrid
 
 Read the grid selected by `code`, which may be a [`SimBenchCode`](@ref) or a code string.
 
 A `complete_data` code reads a whole scenario unfiltered. Any other code reads the
 scenario and then extracts the selected grid from it, so reading several grids of one
-scenario costs a full parse each time.
+scenario costs a full parse each time unless `cache` is set.
 
 Matching the reference implementation's `get_simbench_net`, profile columns no element
 of the grid uses are dropped ([`filter_unapplied_profiles!`](@ref)) and the study cases
@@ -78,16 +96,26 @@ are reduced to the grid's own voltage level ([`filter_study_cases!`](@ref)).
 # Keywords
 - `nrows`: read at most this many rows of each profile table.
 - `input_path`: read from this folder instead of the configured dataset location.
+- `cache = false`: keep the parsed scenario in memory, so further reads with `cache`
+  set extract from it instead of parsing the CSV files again. The cache holds the full
+  parse, profiles included, so it costs several hundred megabytes per scenario; free it
+  with [`clear_scenario_cache!`](@ref). Grids read from the cache share their type and
+  profile tables, so treat the tables of a cached read as read-only.
 
 # Examples
 ```julia
 grid = SimBench.read_grid("1-MVLV-urban-all-0-sw")
 grid = SimBench.read_grid("1-complete_data-mixed-all-0-sw")
+
+# Read every rural low voltage grid, parsing the scenario once.
+codes = SimBench.all_simbench_codes(hv_level = "LV", scenario = 0, all_data = false)
+grids = [SimBench.read_grid(c; cache = true) for c in codes if endswith(c, "no_sw")]
 ```
 """
 function read_grid(
         code::SimBenchCode; nrows::Union{Nothing, Integer} = nothing,
         input_path::Union{Nothing, AbstractString} = nothing,
+        cache::Bool = false,
     )
     dir = if input_path === nothing
         scenario_path(code.scenario; version = code.version)
@@ -95,7 +123,19 @@ function read_grid(
         input_path
     end
 
-    tables = read_tables(dir; nrows)
+    tables = if cache
+        key = (String(dir), nrows === nothing ? -1 : Int(nrows))
+        # The lock also covers the parse, so concurrent readers wait rather than
+        # parsing the same scenario twice. The copy keeps downstream replacement of
+        # table entries from touching the cached dict.
+        copy(
+            lock(_SCENARIO_CACHE_LOCK) do
+                get!(() -> read_tables(dir; nrows), _SCENARIO_CACHE, key)
+            end,
+        )
+    else
+        read_tables(dir; nrows)
+    end
     is_complete_data(code) || (tables = extract_tables(tables, code))
     filter_unapplied_profiles!(tables)
     filter_study_cases!(tables)

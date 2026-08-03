@@ -55,4 +55,36 @@ using DataFrames: nrow
                 "SimBenchGrid(\"1-complete_data-mixed-all-0-sw\")"
         end
     end
+
+    @testset "scenario cache" begin
+        if DATASET === nothing
+            @info "Skipping scenario cache tests: dataset unavailable."
+        else
+            SimBench.clear_scenario_cache!()
+            plain = SimBench.read_grid("1-LV-rural1--0-no_sw"; nrows = 1)
+            @test isempty(SimBench._SCENARIO_CACHE)
+
+            cached = SimBench.read_grid("1-LV-rural1--0-no_sw"; nrows = 1, cache = true)
+            @test length(SimBench._SCENARIO_CACHE) == 1
+            for t in SimBench.ALL_TABLES
+                @test nrow(cached[t]) == nrow(plain[t])
+            end
+
+            # The cache keeps the raw parse: extraction and the per-grid filtering of
+            # profiles and study cases must not leak into it.
+            raw = only(values(SimBench._SCENARIO_CACHE))
+            @test nrow(raw[:StudyCases]) == 24
+            @test hasproperty(raw[:StudyCases], :voltLvl)
+            @test nrow(cached[:StudyCases]) == 6
+
+            # A second cached read extracts from memory and agrees.
+            again = SimBench.read_grid("1-LV-urban6--0-no_sw"; nrows = 1, cache = true)
+            @test length(SimBench._SCENARIO_CACHE) == 1
+            @test nrow(again[:Node]) ==
+                nrow(SimBench.read_grid("1-LV-urban6--0-no_sw"; nrows = 1)[:Node])
+
+            SimBench.clear_scenario_cache!()
+            @test isempty(SimBench._SCENARIO_CACHE)
+        end
+    end
 end

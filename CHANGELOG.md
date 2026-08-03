@@ -25,6 +25,10 @@ Notable changes to SimBench.jl are recorded here. The format follows
 
 ### Added
 
+- `read_grid(...; cache = true)` keeps the parsed scenario in memory, so reading many
+  grids of one scenario parses the CSV files once instead of once per grid.
+  `clear_scenario_cache!` frees it
+
 - Time series and study cases: `absolute_profiles` turns the relative profiles into
   absolute MW and MVAr per element, `apply_profile!` and `apply_study_case!` set a
   PowerModels case to a time step or to one of the six study cases. `read_grid` now

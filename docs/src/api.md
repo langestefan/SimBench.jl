@@ -26,6 +26,7 @@ SimBench.SimBench
 SimBench.SimBenchGrid
 SimBench.read_grid
 SimBench.scenario
+SimBench.clear_scenario_cache!
 ```
 
 ## Grid extraction
