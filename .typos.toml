@@ -6,6 +6,8 @@
 Setp = "Setp"
 # tapNeutr: neutral tap position.
 Neutr = "Neutr"
+# Optimal power flow.
+OPF = "OPF"
 
 [type.ipynb]
 # It detects false positives in the base64 encoded images inside notebooks

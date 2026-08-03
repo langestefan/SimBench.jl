@@ -65,7 +65,7 @@ the bus base voltages. `per_unit` is `true`, so PowerModels leaves it alone.
   side injecting it minus losses, exactly as pandapower's power flow does internally;
   this is the form `PowerModels.compute_ac_pf` can solve, since its Newton-Raphson
   reads no `dcline` component. `:dcline` emits a PowerModels `dcline` component
-  instead, which `solve_ac_pf` and the OF problems understand.
+  instead, which `solve_ac_pf` and the OPF problems understand.
 - `storage_as = :storage`: how to represent a storage unit, present in scenarios 1
   and 2. `:storage` emits PowerModels `storage` components, whose fixed `ps` and `qs`
   withdrawals `PowerModels.compute_ac_pf` counts just as pandapower counts a storage's
