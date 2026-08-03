@@ -142,7 +142,11 @@ balancing duty to a single bus, which is what a solver without a distributed sla
 function _demote_extra_references!(data)
     # Component labelling over in-service branches.
     parent = Dict(b["index"] => b["index"] for (_, b) in data["bus"])
-    find(i) = (while parent[i] != i; parent[i] = parent[parent[i]]; i = parent[i] end; i)
+    find(i) = (
+        while parent[i] != i
+            parent[i] = parent[parent[i]]; i = parent[i]
+        end; i
+    )
     for (_, br) in data["branch"]
         br["br_status"] == 1 || continue
         a, b = find(br["f_bus"]), find(br["t_bus"])
@@ -210,11 +214,84 @@ function _seed_angles!(data)
         end
     end
 
+    # Propagating shifts is enough for a radial grid, where the angle spread comes almost
+    # entirely from the transformers. A meshed transmission grid also spreads tens of
+    # degrees through the lines themselves, so refine with a DC power flow.
+    _refine_angles_dc!(data)
+
     # PowerModels takes a variable's starting point from the `_start` keys, so setting
     # `va` alone would leave the solver at a flat start regardless.
     for (_, bus) in data["bus"]
         bus["va_start"] = bus["va"]
         bus["vm_start"] = bus["vm"]
+    end
+    return data
+end
+
+"""
+Refine the seeded angles with a DC power flow.
+
+Solves `B θ = P` over the in-service branches, holding the reference buses at the angles
+already seeded, with each transformer's phase shift entering as an injection. Angles are
+in degrees at this point, as is `shift`.
+
+This matters for meshed grids: the extra-high-voltage network spreads its angles through
+the lines rather than through transformers, so shift propagation alone leaves the start
+far enough away that no solver converges, even though the case itself is sound. On a
+radial grid the DC solution and the propagated angles agree closely anyway.
+
+Leaves the angles untouched if the system turns out to be singular, which happens when a
+component holds no reference bus.
+"""
+function _refine_angles_dc!(data)
+    buses = sort!(collect(keys(data["bus"])), by = k -> data["bus"][k]["index"])
+    idx = Dict(data["bus"][k]["index"] => i for (i, k) in enumerate(buses))
+    n = length(buses)
+    n == 0 && return data
+
+    is_ref = [data["bus"][k]["bus_type"] == BUS_REF for k in buses]
+    theta = [data["bus"][k]["va"] for k in buses]
+
+    # Net injection in per unit, before the per-unit rescaling of powers happens.
+    p = zeros(Float64, n)
+    for (_, gen) in data["gen"]
+        gen["gen_status"] == 1 || continue
+        p[idx[gen["gen_bus"]]] += gen["pg"] / data["baseMVA"]
+    end
+    for (_, load) in data["load"]
+        load["status"] == 1 || continue
+        p[idx[load["load_bus"]]] -= load["pd"] / data["baseMVA"]
+    end
+
+    B = zeros(Float64, n, n)
+    for (_, br) in data["branch"]
+        br["br_status"] == 1 || continue
+        x = br["br_x"]
+        abs(x) < 1.0e-12 && continue
+        f, t = idx[br["f_bus"]], idx[br["t_bus"]]
+        y = 1 / x
+        B[f, f] += y
+        B[t, t] += y
+        B[f, t] -= y
+        B[t, f] -= y
+        # A phase shift acts like a fixed injection at each end.
+        shift = deg2rad(br["shift"])
+        p[f] += y * shift
+        p[t] -= y * shift
+    end
+
+    free = findall(!, is_ref)
+    isempty(free) && return data
+    rhs = p[free] - B[free, is_ref] * deg2rad.(theta[is_ref])
+    solution = try
+        B[free, free] \ rhs
+    catch
+        return data     # singular: keep the propagated angles
+    end
+    all(isfinite, solution) || return data
+
+    for (k, i) in zip(free, eachindex(solution))
+        data["bus"][buses[k]]["va"] = rad2deg(solution[i])
     end
     return data
 end
@@ -250,9 +327,9 @@ function _to_per_unit!(data, baseMVA)
         end
     end
     for (_, strg) in data["storage"], k in (
-            "ps", "qs", "energy", "energy_rating", "charge_rating",
-            "discharge_rating", "thermal_rating", "qmin", "qmax", "p_loss", "q_loss",
-        )
+                "ps", "qs", "energy", "energy_rating", "charge_rating",
+                "discharge_rating", "thermal_rating", "qmin", "qmax", "p_loss", "q_loss",
+            )
         strg[k] = rescale(strg[k])
     end
 
