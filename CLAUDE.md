@@ -67,9 +67,14 @@ touching the conversion, re-check against pandapower rather than reasoning from 
 A venv with `simbench` and `pandapower` plus `numba=False` suffices to regenerate
 references.
 
-Known accepted difference: a line with an open switch at one end is dropped entirely,
-while pandapower keeps it energised from the closed end. This bounds MV grid agreement
-at about 8e-4 in vm and is a documented modelling choice, not a bug.
+Two traps when comparing against pandapower 3:
+
+- Transformer tap positions: the simbench converter never sets `tap_changer_type`, so
+  pandapower 3 silently ignores the dataset's `tappos` (pandapower 2 applied it). This
+  package applies taps, as the data intends. When regenerating power flow references,
+  set `net.trafo["tap_changer_type"] = "Ratio"` first or MV grids disagree by ~1.5e-2.
+- `pp.runpp` needs `calculate_voltage_angles=True` and `init="auto"`; a flat init does
+  not converge on the EHV grids.
 
 ## Tests
 

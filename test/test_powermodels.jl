@@ -247,6 +247,23 @@ const PP_TRAFO = (
         end
     end
 
+    @testset "tap positions are applied" begin
+        if DATASET !== nothing
+            # This grid's two 110/10 kV transformers sit at tap -1 with a 1.5 percent
+            # step, so their off-nominal ratio must be 0.985. pandapower 3 silently
+            # ignores the dataset's tap positions, because the simbench converter
+            # never sets `tap_changer_type`; the SimBench data clearly intends them.
+            grid = SimBench.read_grid("1-MV-urban--1-no_sw"; nrows = 1)
+            data = SimBench.powermodels_data(grid)
+            taps = [
+                b["tap"] for b in values(data["branch"]) if b["transformer"] &&
+                    startswith(b["name"], "HV1-MV3.101")
+            ]
+            @test length(taps) == 2
+            @test all(t ≈ 0.985 for t in taps)
+        end
+    end
+
     @testset "sw variant keeps couplers as branches" begin
         if DATASET !== nothing
             # The rural medium voltage grid has two bus-bus couplers; a purely radial
@@ -271,15 +288,28 @@ const PP_TRAFO = (
         end
     end
 
-    @testset "open-ended branches are out of service" begin
+    @testset "open-ended branches hang from stub buses" begin
         if DATASET !== nothing
             grid = SimBench.read_grid("1-MV-rural--0-no_sw"; nrows = 1)
             topo = SimBench.resolve_topology(grid)
             data = SimBench.powermodels_data(grid; topology = topo)
-            out = [b for b in values(data["branch"]) if b["br_status"] == 0]
-            # The six normally-open loop lines of this grid.
-            @test length(out) == 6
-            @test all(occursin("loop_line", b["name"]) for b in out)
+
+            # The six normally-open loop lines of this grid are open at one end, so
+            # they stay in service with the open end on a stub bus, as pandapower
+            # keeps them. Nothing is fully out of service.
+            @test all(b["br_status"] == 1 for b in values(data["branch"]))
+            stubs = [b for b in 1:length(data["bus"]) if b > length(topo.buses)]
+            @test length(stubs) == 6
+
+            # Each stub carries exactly one branch end and nothing else.
+            degree = Dict(b => 0 for b in stubs)
+            for br in values(data["branch"]), e in (br["f_bus"], br["t_bus"])
+                haskey(degree, e) && (degree[e] += 1)
+            end
+            @test all(==(1), values(degree))
+            @test all(
+                l["load_bus"] <= length(topo.buses) for l in values(data["load"])
+            )
         end
     end
 end

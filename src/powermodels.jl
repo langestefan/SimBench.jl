@@ -568,7 +568,16 @@ function _branch!(data, i, dict)
     return
 end
 
-"""Add the AC lines. Rows whose type resolves in `DCLineType` are DC and are skipped."""
+"""
+Add the AC lines. Rows whose type resolves in `DCLineType` are DC and are skipped.
+
+A line open at exactly one end stays in service, with the open end moved onto a stub
+bus carrying nothing. This is what pandapower's switch model does, and it matters for
+the results: the line is still energised from its closed end, so its charging still
+draws reactive power. Dropping such lines instead costs about 8.0e-4 pu of voltage
+agreement on the medium voltage grids. Only a line open at both ends goes out of
+service.
+"""
 function _add_lines!(data, tables, topo::Topology, base_kv, baseMVA, angle_limit)
     line, linetype = tables[:Line], tables[:LineType]
     types = Dict(
@@ -600,6 +609,14 @@ function _add_lines!(data, tables, topo::Topology, base_kv, baseMVA, angle_limit
         b_total = _val(linetype.b[row], 0.0) * len * 1.0e-6 * zbase
         imax = _val(linetype.iMax[row], 0.0)
 
+        a_closed, b_closed = topo.line_ends[i]
+        status = (a_closed || b_closed) ? 1 : 0
+        if a_closed && !b_closed
+            t = _add_stub_bus!(data, base_kv, line.nodeB[i], t)
+        elseif b_closed && !a_closed
+            f = _add_stub_bus!(data, base_kv, line.nodeA[i], f)
+        end
+
         n += 1
         _branch!(
             data, n,
@@ -611,7 +628,7 @@ function _add_lines!(data, tables, topo::Topology, base_kv, baseMVA, angle_limit
                 "g_fr" => 0.0, "b_fr" => b_total / 2,
                 "g_to" => 0.0, "b_to" => b_total / 2,
                 "tap" => 1.0, "shift" => 0.0,
-                "br_status" => topo.line_closed[i] ? 1 : 0,
+                "br_status" => status,
                 "angmin" => -angle_limit, "angmax" => angle_limit,
                 "rate_a" => sqrt(3) * imax * 1.0e-3 * base_kv[f] *
                     _val(line.loadingMax[i], 100.0) / 100,
@@ -622,6 +639,32 @@ function _add_lines!(data, tables, topo::Topology, base_kv, baseMVA, angle_limit
         )
     end
     return n
+end
+
+"""
+Add a stub bus for the open end of a branch, named after its auxiliary node.
+
+Copies the base voltage and limits of `like`, the bus at the branch's closed end. The
+stub carries no load or generation; it exists so the branch can stay energised from
+the other side.
+"""
+function _add_stub_bus!(data, base_kv, name, like::Int)
+    b = length(data["bus"]) + 1
+    push!(base_kv, base_kv[like])
+    template = data["bus"]["$like"]
+    data["bus"]["$b"] = Dict{String, Any}(
+        "bus_i" => b,
+        "index" => b,
+        "name" => name,
+        "bus_type" => BUS_PQ,
+        "base_kv" => base_kv[like],
+        "vm" => 1.0,
+        "va" => 0.0,
+        "vmin" => template["vmin"],
+        "vmax" => template["vmax"],
+        "source_id" => Any["bus", name],
+    )
+    return b
 end
 
 """

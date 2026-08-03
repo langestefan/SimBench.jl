@@ -8,6 +8,12 @@ Notable changes to SimBench.jl are recorded here. The format follows
 
 ### Changed
 
+- A line open at exactly one end stays in service, with its open end on a stub bus,
+  matching pandapower's switch model: the line is still energised from the closed end
+  and its charging still draws reactive power. This closes the last modelling gap;
+  every compared grid, across all voltage levels and scenarios, now agrees with
+  pandapower to 1e-10 pu or better
+
 - The default `coupler_impedance` is 1.0e-6 rather than 1.0e-5 per unit. The `sw`
   variants are now validated against pandapower across all voltage levels; voltage
   agreement scales linearly with this impedance, and Newton-Raphson tolerates one more

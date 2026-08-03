@@ -25,7 +25,12 @@ Bus topology of a grid after auxiliary nodes and switches have been resolved.
 - `members::Vector{Vector{String}}`: node ids collapsed into each bus. A bus with more
   than one member was formed by fusing across closed bus couplers.
 - `line_closed::BitVector`: per `Line` row, whether both end switches are closed.
-- `trafo_closed::BitVector`: per `Transformer` row, the same.
+- `line_ends::Vector{Tuple{Bool, Bool}}`: per `Line` row, whether the switch at the
+  `nodeA` and `nodeB` end is closed. An end sitting directly on a real bus has no
+  switch and counts as closed. In the published scenario 0 every out-of-service line
+  is open at exactly one end.
+- `trafo_closed::BitVector`: per `Transformer` row, whether both end switches are
+  closed.
 - `bus_switches::Vector{Tuple{Int, Int, Bool}}`: bus couplers that were not fused, as
   `(bus, bus, closed)`. Empty when `collapse = true`.
 - `retyped::Vector{String}`: auxiliary nodes promoted to real buses because they carry
@@ -36,6 +41,7 @@ struct Topology
     bus_of::Dict{String, Int}
     members::Vector{Vector{String}}
     line_closed::BitVector
+    line_ends::Vector{Tuple{Bool, Bool}}
     trafo_closed::BitVector
     bus_switches::Vector{Tuple{Int, Int, Bool}}
     retyped::Vector{String}
@@ -208,15 +214,16 @@ function resolve_topology(
     # A branch is in service when the switches at both of its ends are closed. An end
     # sitting directly on a real bus has no switch and counts as closed.
     end_closed(id) = ismissing(id) ? false : get(aux_closed, id, true)
-    line_closed = BitVector(
-        end_closed(line.nodeA[i]) && end_closed(line.nodeB[i]) for i in 1:nrow(line)
-    )
+    line_ends = [
+        (end_closed(line.nodeA[i]), end_closed(line.nodeB[i])) for i in 1:nrow(line)
+    ]
+    line_closed = BitVector(a && b for (a, b) in line_ends)
     trafo_closed = BitVector(
         end_closed(trafo.nodeHV[i]) && end_closed(trafo.nodeLV[i]) for i in 1:nrow(trafo)
     )
 
     return Topology(
-        final_buses, bus_of, members, line_closed, trafo_closed, remaining,
+        final_buses, bus_of, members, line_closed, line_ends, trafo_closed, remaining,
         sort!(collect(promoted)),
     )
 end
