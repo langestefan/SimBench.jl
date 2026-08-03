@@ -43,7 +43,7 @@ explicit `set_data_dir!` takes precedence over the environment variable.
 Three scenario folders, one per projection year, holding the complete grid data:
 
 | Scenario | Folder | Size |
-|---|---|---|
+| --- | --- | --- |
 | 0 | `1-complete_data-mixed-all-0-sw` | 111 MB |
 | 1 | `1-complete_data-mixed-all-1-sw` | 133 MB |
 | 2 | `1-complete_data-mixed-all-2-sw` | 134 MB |
