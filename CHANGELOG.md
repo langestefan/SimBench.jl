@@ -6,6 +6,13 @@ Notable changes to SimBench.jl are recorded here. The format follows
 
 ## unreleased
 
+### Fixed
+
+- The DC power flow that refines the starting angles assembles its susceptance matrix
+  sparse. The dense matrix grew quadratically with bus count, and converting the
+  combined transmission and distribution grids (the `EHVHVMVLV` codes) exhausted
+  memory; conversion now scales with the number of branches
+
 ### Changed
 
 - The core workflow is exported: `SimBenchGrid`, `SimBenchCode`,

@@ -308,22 +308,26 @@ function _refine_angles_dc!(data)
         p[idx[load["load_bus"]]] -= load["pd"] / data["baseMVA"]
     end
 
-    B = zeros(Float64, n, n)
+    # Assembled sparse: dense would be O(n^2) and the combined transmission-plus-
+    # distribution grids reach tens of thousands of buses.
+    rows = Int[]
+    cols = Int[]
+    vals = Float64[]
     for (_, br) in data["branch"]
         br["br_status"] == 1 || continue
         x = br["br_x"]
         abs(x) < 1.0e-12 && continue
         f, t = idx[br["f_bus"]], idx[br["t_bus"]]
         y = 1 / x
-        B[f, f] += y
-        B[t, t] += y
-        B[f, t] -= y
-        B[t, f] -= y
+        append!(rows, (f, t, f, t))
+        append!(cols, (f, t, t, f))
+        append!(vals, (y, y, -y, -y))
         # A phase shift acts like a fixed injection at each end.
         shift = deg2rad(br["shift"])
         p[f] += y * shift
         p[t] -= y * shift
     end
+    B = sparse(rows, cols, vals, n, n)
 
     free = findall(!, is_ref)
     isempty(free) && return data

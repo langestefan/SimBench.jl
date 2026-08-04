@@ -34,6 +34,7 @@ using CSV: CSV
 using DataFrames: DataFrame, Not, nrow
 using Dates: DateTime, @dateformat_str
 using LazyArtifacts: LazyArtifacts
+using SparseArrays: sparse
 
 export SimBenchGrid, SimBenchCode, all_simbench_codes, read_grid, powermodels_data,
     absolute_profiles, apply_profile!, apply_study_case!
