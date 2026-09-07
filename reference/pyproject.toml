@@ -1,0 +1,17 @@
+[project]
+name = "simbench-reference"
+version = "0"
+description = "Generate the pandapower reference fixtures that SimBench.jl is validated against."
+requires-python = "==3.12.*"
+dependencies = [
+  "simbench==1.6.2",
+  "pandapower==3.5.4",
+  "numpy>=2,<3",
+  "pandas>=2,<3",
+]
+
+[tool.ruff]
+line-length = 90
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

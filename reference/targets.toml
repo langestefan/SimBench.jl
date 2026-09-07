@@ -1,0 +1,71 @@
+# What gets pinned against the Python reference. Single source of truth: the Julia tests
+# read the generated fixtures, they never hardcode this list.
+
+# Grids compared per unit and by power flow.
+#
+# The no_sw variants agree with pandapower exactly, because both sides fuse the bus
+# couplers away. The two sw variants are here to cover the coupler path: SimBench.jl
+# keeps a coupler as a low impedance branch where pandapower fuses it ideally, so they
+# agree only to about the coupler impedance and carry looser tolerances.
+ppc_codes = [
+  "1-LV-rural1--0-no_sw",
+  "1-LV-urban6--0-no_sw",
+  "1-LV-semiurb4--2-no_sw",
+  "1-MV-rural--0-no_sw",
+  "1-MV-urban--1-no_sw",
+  "1-MVLV-rural-1.108-0-no_sw",
+  "1-HV-mixed--0-no_sw",
+  "1-EHV-mixed--2-no_sw",
+  "1-MV-rural--0-sw",
+  "1-HV-mixed--0-sw",
+]
+
+# Grids whose extraction row counts and element id digests are pinned. These are the
+# codes the Julia suite already covered by row count; the digests are what is new.
+extraction_codes = [
+  "1-LV-rural1--0-sw",
+  "1-LV-rural1--0-no_sw",
+  "1-LV-urban6--0-sw",
+  "1-LV-semiurb4--2-sw",
+  "1-MV-rural--0-sw",
+  "1-MV-comm--0-no_sw",
+  "1-MV-urban--1-sw",
+  "1-MVLV-rural-1.108-0-sw",
+  "1-MVLV-urban-all-0-sw",
+  "1-MVLV-comm-all-2-sw",
+  "1-HV-mixed--0-sw",
+  "1-HV-urban--0-sw",
+  "1-HVMV-mixed-all-0-sw",
+  "1-HVMV-urban-2.203-0-sw",
+  "1-EHV-mixed--0-sw",
+  "1-EHVHV-mixed-1-0-sw",
+  "1-EHVHV-mixed-all-0-sw",
+  "1-EHVHVMVLV-mixed-all-0-sw",
+]
+
+# Named filter combinations, so all_simbench_codes is pinned by content and not only by
+# count. Keys are the kwargs of collect_all_simbench_codes.
+[subsets.ehv]
+hv_level = "EHV"
+all_data = false
+
+[subsets.lv]
+hv_level = "LV"
+all_data = false
+
+[subsets.no_sw]
+breaker_rep = "no_sw"
+all_data = false
+
+[subsets.hv_urban_scenario1]
+hv_level = "HV"
+hv_type = "urban"
+scenario = 1
+all_data = false
+
+[subsets.mv_urban_scenario0]
+hv_level = "MV"
+lv_level = ""
+hv_type = "urban"
+scenario = 0
+all_data = false

@@ -18,6 +18,10 @@ docs/package-lock.json
 node_modules/
 docs/src/.vitepress/cache/
 
+# Reference generator venv. The lockfile is tracked, the environment is not.
+reference/.venv/
+__pycache__/
+
 # Editor and OS
 .vscode/
 .DS_Store
