@@ -5,13 +5,16 @@ This is the entry point. Run it as:
     uv run --project reference reference/generate_all.py
 
 The manifest it writes carries the provenance and the per-code tolerances, so a stale or
-mis-generated reference is visible in the data rather than only in a diff.
+wrongly generated reference is visible in the data rather than only in a diff.
+
+Deliberately no generation timestamp: regenerating has to be a no-op on an unchanged
+checkout, and a timestamp would make every run produce a diff. Git already records when
+the fixtures last changed.
 """
 
 from __future__ import annotations
 
 import sys
-from datetime import UTC, datetime
 from importlib.metadata import version
 
 import gen_codes
@@ -66,7 +69,6 @@ MANIFEST_HEADER = [
     "simbench_version",
     "pandapower_version",
     "python_version",
-    "generated_utc",
 ]
 
 
@@ -81,7 +83,6 @@ def main() -> None:
         "simbench_version": version("simbench"),
         "pandapower_version": version("pandapower"),
         "python_version": ".".join(str(v) for v in sys.version_info[:3]),
-        "generated_utc": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
 
     print("grids")
