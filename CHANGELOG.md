@@ -15,6 +15,13 @@ Notable changes to SimBench.jl are recorded here. The format follows
 
 ### Changed
 
+- The comparison against the Python reference is generated and asserted rather than
+  transcribed. `reference/` holds a pinned Python environment that captures the code
+  enumeration, extraction row counts and element id digests, pandapower's internal
+  per-unit values and its power flow solution into `test/references/`. The suite compares
+  against those fixtures, and a new `validation/` environment runs the power flow
+  comparison so PowerModels stays off the package's dependency list
+
 - The core workflow is exported: `SimBenchGrid`, `SimBenchCode`,
   `all_simbench_codes`, `read_grid`, `powermodels_data`, `absolute_profiles`,
   `apply_profile!` and `apply_study_case!`. The lower-level layers stay qualified
