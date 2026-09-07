@@ -1,0 +1,47 @@
+name: Validation
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "src/**"
+      - "validation/**"
+      - "test/references/**"
+      - "*.toml"
+    tags: ["*"]
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "src/**"
+      - "validation/**"
+      - "test/references/**"
+      - "*.toml"
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  # Skip intermediate builds: always.
+  # Cancel intermediate builds: only if it is a pull request build.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
+
+jobs:
+  powerflow:
+    name: Power flow against pandapower
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: julia-actions/setup-julia@v3
+        with:
+          version: "1"
+      - name: Use Julia cache
+        uses: julia-actions/cache@v3
+      - uses: julia-actions/julia-buildpkg@v1
+      # A separate environment, so PowerModels stays off the package's dependency list
+      # and off the test matrix, which runs seven times across three operating systems.
+      - name: Instantiate environment with development version of the package
+        shell: julia --color=yes --project=validation {0}
+        run: using Pkg; Pkg.instantiate()
+      - name: Compare against the pandapower reference
+        run: julia --color=yes --project=validation validation/run.jl
