@@ -1,0 +1,2 @@
+name,kind,node_id,pg_mw,qg_mvar,vg_pu,pmax_mw,pmin_mw,qmax_mvar,qmin_mvar,status
+HV1 grid at MV1.101,ext_grid,HV1 Bus 17,0.0,0.0,1.025,1000000000.0,-1000000000.0,0.0,0.0,1

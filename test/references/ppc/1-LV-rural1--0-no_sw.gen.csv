@@ -1,0 +1,2 @@
+name,kind,node_id,pg_mw,qg_mvar,vg_pu,pmax_mw,pmin_mw,qmax_mvar,qmin_mvar,status
+MV1.101 grid at LV1.101,ext_grid,MV1.101 Bus 4,0.0,0.0,1.025,1000000000.0,-1000000000.0,0.0,0.0,1

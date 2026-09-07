@@ -9,6 +9,11 @@ Neutr = "Neutr"
 # Optimal power flow.
 OPF = "OPF"
 
+[files]
+# Machine-generated reference fixtures. They are full of dataset element ids, so spell
+# checking them has no value and would only turn a regeneration into a surprise failure.
+extend-exclude = ["test/references/"]
+
 [type.ipynb]
 # It detects false positives in the base64 encoded images inside notebooks
 extend-glob = ["*.ipynb"]

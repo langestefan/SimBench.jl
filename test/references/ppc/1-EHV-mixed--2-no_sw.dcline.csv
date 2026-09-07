@@ -1,0 +1,7 @@
+name,from_node,to_node,p_mw,loss_mw,loss_percent,vm_from_pu,vm_to_pu
+dcline 1,EHV Bus 173,EHV Bus 185,0.0,0.0,1.2,1.092,1.092
+dcline 2,EHV Bus 219,EHV Bus 303,0.0,0.0,1.2,1.092,1.092
+dcline 3,EHV Bus 49,EHV Bus 499,0.0,0.0,1.2,1.092,1.092
+dcline 4,EHV Bus 1565,EHV Bus 1739,0.0,0.0,1.2,1.068,1.068
+dcline 5,EHV Bus 35,EHV Bus 333,0.0,0.0,1.2,1.092,1.092
+dcline 6,EHV Bus 333,EHV Bus 331,0.0,0.0,1.2,1.092,1.092

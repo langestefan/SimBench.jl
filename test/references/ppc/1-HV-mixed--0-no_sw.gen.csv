@@ -1,0 +1,4 @@
+name,kind,node_id,pg_mw,qg_mvar,vg_pu,pmax_mw,pmin_mw,qmax_mvar,qmin_mvar,status
+EHV Ext_grid 8,ext_grid,EHV Bus 143,0.0,0.0,1.092,1000000000.0,-1000000000.0,0.0,0.0,1
+EHV Ext_grid 9,ext_grid,EHV Bus 1649,0.0,0.0,1.068,1000000000.0,-1000000000.0,0.0,0.0,1
+EHV Ext_grid 10,ext_grid,EHV Bus 57,0.0,0.0,1.092,1000000000.0,-1000000000.0,0.0,0.0,1
