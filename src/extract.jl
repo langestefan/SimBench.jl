@@ -288,7 +288,7 @@ function extract_tables(tables::Dict{Symbol, DataFrame}, code::SimBenchCode)
 
     return Dict{Symbol, DataFrame}(
         name => extract_table(
-                df, name, hv_subnets, lv_subnets; bus_bus_switches = switches
-            ) for (name, df) in tables
+            df, name, hv_subnets, lv_subnets; bus_bus_switches = switches
+        ) for (name, df) in tables
     )
 end
