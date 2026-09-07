@@ -35,6 +35,7 @@ jobs:
         uses: j178/prek-action@v3.0.0
         env:
           SKIP: no-commit-to-branch
+          PRE_COMMIT_CACHE_DIR: /tmp/prek-cache
 
   link-checker:
     name: Link checker
