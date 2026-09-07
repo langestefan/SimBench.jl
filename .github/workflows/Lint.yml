@@ -29,7 +29,12 @@ jobs:
       - name: Build package (required for ExplicitImports)
         uses: julia-actions/julia-buildpkg@v1
       - name: Install Julia packages
-        run: 'using Pkg; Pkg.add(["ExplicitImports", "Runic"])'
+        run: |
+          using Pkg
+          Pkg.add([
+              PackageSpec(name = "ExplicitImports"),
+              PackageSpec(name = "Runic", version = "1.10.0"),
+          ])
         shell: julia --color=yes {0}
       - name: Run prek
         uses: j178/prek-action@v3.0.0
