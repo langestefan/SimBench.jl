@@ -1,86 +1,4 @@
-using DataFrames: DataFrame, nrow
-
-# Row counts produced by the reference implementation's get_extracted_csv_data, captured
-# by running upstream's own extract_simbench_grids_from_csv with pandapower stubbed out.
-# The Julia port was additionally checked to produce the same set of element ids, not
-# just the same counts, for every code below.
-const REFERENCE_EXTRACTIONS = Dict(
-    "1-LV-rural1--0-sw" => Dict(
-        :Node => 43, :Line => 13, :Load => 13, :Switch => 28, :Transformer => 1,
-        :ExternalNet => 1, :RES => 4, :PowerPlant => 0, :Coordinates => 17,
-        :Measurement => 0, :Substation => 0,
-    ),
-    "1-LV-rural1--0-no_sw" => Dict(
-        :Node => 43, :Line => 13, :Load => 13, :Switch => 28, :Transformer => 1,
-        :ExternalNet => 1, :RES => 4,
-    ),
-    "1-LV-urban6--0-sw" => Dict(
-        :Node => 175, :Line => 57, :Load => 111, :Switch => 116, :Transformer => 1,
-        :ExternalNet => 1, :RES => 5, :Coordinates => 61,
-    ),
-    "1-LV-semiurb4--2-sw" => Dict(
-        :Node => 130, :Line => 42, :Load => 58, :Switch => 86, :Transformer => 1,
-        :ExternalNet => 1, :RES => 6, :Measurement => 3,
-    ),
-    "1-MV-rural--0-sw" => Dict(
-        :Node => 299, :Line => 99, :Load => 96, :Switch => 204, :Transformer => 2,
-        :ExternalNet => 1, :RES => 102, :Coordinates => 276, :Measurement => 37,
-        :Substation => 1,
-    ),
-    "1-MV-comm--0-no_sw" => Dict(
-        :Node => 329, :Line => 109, :Load => 98, :Switch => 226, :Transformer => 2,
-        :ExternalNet => 1, :RES => 89,
-    ),
-    "1-MV-urban--1-sw" => Dict(
-        :Node => 440, :Line => 147, :Load => 139, :Switch => 305, :Transformer => 2,
-        :ExternalNet => 1, :RES => 134,
-    ),
-    "1-MVLV-rural-1.108-0-sw" => Dict(
-        :Node => 341, :Line => 112, :Load => 108, :Switch => 232, :Transformer => 3,
-        :ExternalNet => 1, :RES => 105,
-    ),
-    "1-MVLV-urban-all-0-sw" => Dict(
-        :Node => 31382, :Line => 10328, :Load => 11542, :Switch => 20933,
-        :Transformer => 135, :ExternalNet => 1, :RES => 806, :Substation => 2,
-    ),
-    "1-MVLV-comm-all-2-sw" => Dict(
-        :Node => 18630, :Line => 6133, :Load => 8637, :Switch => 12424,
-        :Transformer => 81, :ExternalNet => 1, :RES => 964,
-    ),
-    "1-HV-mixed--0-sw" => Dict(
-        :Node => 308, :Line => 95, :Load => 58, :Switch => 422, :Transformer => 6,
-        :ExternalNet => 3, :RES => 103, :PowerPlant => 0, :Substation => 18,
-    ),
-    "1-HV-urban--0-sw" => Dict(
-        :Node => 372, :Line => 113, :Load => 79, :Switch => 498, :Transformer => 3,
-        :ExternalNet => 1, :RES => 98,
-    ),
-    "1-HVMV-mixed-all-0-sw" => Dict(
-        :Node => 5408, :Line => 1800, :Load => 1686, :Switch => 3924,
-        :Transformer => 36, :ExternalNet => 3, :RES => 1773,
-    ),
-    "1-HVMV-urban-2.203-0-sw" => Dict(
-        :Node => 733, :Line => 234, :Load => 194, :Switch => 745, :Transformer => 5,
-        :ExternalNet => 1, :RES => 219,
-    ),
-    "1-EHV-mixed--0-sw" => Dict(
-        :Node => 3087, :Line => 849, :Load => 390, :Switch => 4500,
-        :Transformer => 209, :ExternalNet => 0, :RES => 225, :PowerPlant => 345,
-    ),
-    "1-EHVHV-mixed-1-0-sw" => Dict(
-        :Node => 3389, :Line => 944, :Load => 445, :Switch => 4919,
-        :Transformer => 215, :ExternalNet => 0, :RES => 325, :PowerPlant => 345,
-    ),
-    "1-EHVHV-mixed-all-0-sw" => Dict(
-        :Node => 3759, :Line => 1057, :Load => 523, :Switch => 5416,
-        :Transformer => 218, :ExternalNet => 0, :RES => 422, :PowerPlant => 345,
-    ),
-    "1-EHVHVMVLV-mixed-all-0-sw" => Dict(
-        :Node => 105615, :Line => 34606, :Load => 35647, :Switch => 73511,
-        :Transformer => 686, :ExternalNet => 0, :RES => 5734, :PowerPlant => 345,
-        :Substation => 41,
-    ),
-)
+using DataFrames: DataFrame, eachrow, nrow
 
 @testset "extract" begin
     @testset "subnet naming" begin
@@ -192,6 +110,8 @@ const REFERENCE_EXTRACTIONS = Dict(
     @testset "against the reference implementation" begin
         if DATASET === nothing
             @info "Skipping extraction tests: dataset unavailable."
+        elseif !have_reference("extractions.csv")
+            @info "Skipping extraction tests: reference fixture missing."
         else
             SimBench.reset_data_dir!()
             # Read each scenario once and extract from it, rather than re-reading per code.
@@ -200,11 +120,21 @@ const REFERENCE_EXTRACTIONS = Dict(
                     for s in (0, 1, 2)
             )
 
-            for (code, expected) in REFERENCE_EXTRACTIONS
+            # Row counts and element ids, as the reference implementation's
+            # get_extracted_csv_data produces them. Equal counts do not mean equal
+            # elements, which is why the ids are digested too. Two digests: one over the
+            # ids in table order and one over them sorted, so a failure says whether the
+            # elements differ or only their order does.
+            expected = read_reference("extractions.csv")
+            for code in unique(expected.code)
                 c = SimBench.SimBenchCode(code)
                 extracted = SimBench.extract_tables(by_scenario[c.scenario], c)
-                for (table, rows) in expected
-                    @test nrow(extracted[table]) == rows
+                for r in eachrow(expected[expected.code .== code, :])
+                    table = extracted[Symbol(r.table)]
+                    @test nrow(table) == r.nrows
+                    ids = string.(skipmissing(table.id))
+                    @test id_digest(ids) == r.id_digest
+                    @test id_digest(sort(ids)) == r.id_digest_sorted
                 end
             end
 

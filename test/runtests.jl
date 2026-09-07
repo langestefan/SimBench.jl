@@ -28,6 +28,8 @@ catch
     nothing
 end
 
+include("references.jl")
+
 @testset "SimBench.jl" begin
     @testset "Code quality (Aqua)" begin
         Aqua.test_all(SimBench)
@@ -42,5 +44,6 @@ end
     include("test_grid.jl")
     include("test_switches.jl")
     include("test_powermodels.jl")
+    include("test_reference_ppc.jl")
     include("test_profiles.jl")
 end

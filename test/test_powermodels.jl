@@ -1,19 +1,5 @@
 using DataFrames: nrow
 
-# Reference per-unit values taken from pandapower's internal ppc arrays for
-# 1-LV-rural1--0-no_sw, on pandapower's own 1 MVA base. These pin down the whole
-# transformer model: short-circuit impedance referred to the low-voltage side, the T to
-# pi conversion of the magnetising branch, the off-nominal tap ratio and the Dyn5 shift.
-const PP_TRAFO = (
-    name = "MV1.101-LV1.101-Trafo 1",
-    br_r = 0.0917916665826,
-    br_x = 0.232541689721,
-    b_total = -3.8489176465e-6,
-    g_total = 0.000459994938812,
-    tap = 1.0,
-    shift = 150.0,
-)
-
 @testset "powermodels" begin
     @testset "T to pi conversion" begin
         # With no magnetising branch the impedance passes through untouched.
@@ -101,25 +87,18 @@ const PP_TRAFO = (
         end
     end
 
-    @testset "against pandapower's per-unit values" begin
+    @testset "transformer pi circuit is symmetric" begin
         if DATASET === nothing
-            @info "Skipping per-unit comparison: dataset unavailable."
+            @info "Skipping pi symmetry check: dataset unavailable."
         else
-            # Build on pandapower's 1 MVA base so the numbers are directly comparable.
+            # The magnetising branch values themselves are compared against pandapower
+            # in test_reference_ppc.jl, but only as the sums b_fr + b_to and
+            # g_fr + g_to, which cannot see how they are split. The leakage is split
+            # evenly, so each half must match its opposite.
             grid = SimBench.read_grid("1-LV-rural1--0-no_sw"; nrows = 1)
             data = SimBench.powermodels_data(grid; baseMVA = 1.0)
-            br = only(
-                b for b in values(data["branch"]) if b["name"] == PP_TRAFO.name
-            )
+            br = only(b for b in values(data["branch"]) if b["transformer"])
 
-            @test isapprox(br["br_r"], PP_TRAFO.br_r; rtol = 1.0e-9)
-            @test isapprox(br["br_x"], PP_TRAFO.br_x; rtol = 1.0e-9)
-            @test isapprox(br["b_fr"] + br["b_to"], PP_TRAFO.b_total; rtol = 1.0e-9)
-            @test isapprox(br["g_fr"] + br["g_to"], PP_TRAFO.g_total; rtol = 1.0e-9)
-            @test isapprox(br["tap"], PP_TRAFO.tap; rtol = 1.0e-12)
-            @test isapprox(rad2deg(br["shift"]), PP_TRAFO.shift; atol = 1.0e-9)
-
-            # The pi circuit is symmetric, since the leakage is split evenly.
             @test br["g_fr"] == br["g_to"]
             @test br["b_fr"] == br["b_to"]
         end

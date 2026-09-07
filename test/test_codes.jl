@@ -68,8 +68,6 @@
 
     @testset "enumeration" begin
         all_codes = SimBench.all_simbench_codes()
-        # Cross-checked against the reference implementation's
-        # collect_all_simbench_codes(), which yields the same 246 codes in the same order.
         @test length(all_codes) == 246
         @test allunique(all_codes)
         @test length(SimBench.all_simbench_codes(all_data = false)) == 240
@@ -114,5 +112,40 @@
         short = SimBench.all_simbench_codes(shortened = true)
         @test length(short) == length(all_codes)
         @test short != all_codes
+    end
+
+    @testset "against the reference enumeration" begin
+        if !have_reference("codes.csv")
+            @info "Skipping code enumeration comparison: reference fixture missing."
+        else
+            # The enumeration itself, in order, as the reference implementation's
+            # collect_all_simbench_codes() yields it. Comparing the whole list rather
+            # than its length is what catches a reordering in the middle.
+            ref = read_reference("codes.csv")
+            @test SimBench.all_simbench_codes() == ref.code
+            @test SimBench.all_simbench_codes(shortened = true) == ref.code_shortened
+
+            # Filters pinned by content, not only by count.
+            subsets = read_reference("code_subsets.csv")
+            selected = Dict(
+                "ehv" => SimBench.all_simbench_codes(hv_level = "EHV", all_data = false),
+                "lv" => SimBench.all_simbench_codes(hv_level = "LV", all_data = false),
+                "no_sw" => SimBench.all_simbench_codes(
+                    breaker_rep = "no_sw", all_data = false
+                ),
+                "hv_urban_scenario1" => SimBench.all_simbench_codes(
+                    hv_level = "HV", hv_type = "urban", scenario = 1, all_data = false
+                ),
+                "mv_urban_scenario0" => SimBench.all_simbench_codes(
+                    hv_level = "MV", lv_level = "", hv_type = "urban", scenario = 0,
+                    all_data = false,
+                ),
+            )
+            for (name, codes) in selected
+                expected = subsets.code[subsets.subset .== name]
+                @test !isempty(expected)
+                @test codes == expected
+            end
+        end
     end
 end
