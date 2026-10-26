@@ -39,6 +39,12 @@ Notable changes to SimBench.jl are recorded here. The format follows
 
 ### Added
 
+- `examples/interactive_grid.jl`, a scripted walk through the package: it reads a grid,
+  sets it to a winter evening, solves the power flow and draws the solved case with
+  [PowerPlotsMakie.jl](https://github.com/langestefan/PowerPlotsMakie.jl), at the
+  dataset's own geographic coordinates. Menus switch between six grids and the routing
+  algorithms, and the buses can be dragged
+
 - `attach_coordinates!`, placing every bus, generator, load and storage unit at its
   geographic position from the `Coordinates` table in the form PowerPlots.jl reads,
   and a documentation page plotting the grids with it

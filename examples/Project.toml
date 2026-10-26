@@ -1,0 +1,11 @@
+[deps]
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+GLMakie = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
+NetworkLayout = "46757867-2c16-5918-afeb-47bfcb05e46a"
+PowerModels = "c36e90e8-916a-50a6-bd94-075b64ef4655"
+PowerPlotsMakie = "49f9eb5c-8e5a-55cd-abba-b3fc827ff2f8"
+SimBench = "32dbf506-5fe2-461d-9bb1-ec20229b5bac"
+
+[sources]
+PowerPlotsMakie = {path = "../../PowerPlotsMakie.jl"}
+SimBench = {path = ".."}
