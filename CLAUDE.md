@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 SimBench.jl reads the SimBench benchmark grid dataset (CSV), converts it to
 PowerModels.jl network data, and applies its time series profiles and study cases. It
 is a read-only Julia port of the Python reference implementation at `../simbench`
@@ -31,13 +33,23 @@ const ARTIFACT_DIR = SimBench.artifact_data_dir()
 include("test/test_powermodels.jl")'
 ```
 
+`test_codes.jl`, `test_extract.jl` and `test_reference_ppc.jl` also use the fixture
+helpers (`read_reference`, `id_digest`, ...), so `include("test/references.jl")` before
+them.
+
 Formatting is Runic (checked by a hook, not auto-applied). ExplicitImports enforces
 `using Foo: bar` form; never add a bare `using`.
 
 After adding a `[deps]` entry, run `Pkg.resolve()` before testing or linting; the
 `explicit-imports` hook fails with a `KeyError` on a stale `Manifest.toml`. The docs
 environment needs the same treatment separately, and it builds through
-DocumenterVitepress, so `docs/node_modules` and a working `npm` are required.
+DocumenterVitepress, so `docs/node_modules` and a working `npm` are required. The docs
+build executes `docs/src/plotting.md`, which loads PowerModels and PowerPlots, so it
+solves power flows and is slow.
+
+`examples/` is a fourth environment (GLMakie, PowerPlotsMakie). Its `[sources]` resolve
+SimBench from `..` and PowerPlotsMakie from a sibling checkout `../../PowerPlotsMakie.jl`,
+and need Julia 1.11+. See `examples/README.md`.
 
 CI's Lint job also runs a lychee link check over the repository, which the local hooks
 do not cover; a dead link in Markdown passes `prek` and fails CI.
@@ -64,7 +76,9 @@ CSV files -> SimBenchGrid (DataFrames, SimBench units) -> PowerModels dict (per 
 - `extract.jl`: selects one benchmark grid out of a complete-data scenario by subnet,
   faithfully reproducing the reference implementation, including its dead
   `lv_hv_elms` branch (verified always empty upstream).
-- `grid.jl`: `SimBenchGrid` and `read_grid`.
+- `grid.jl`: `SimBenchGrid` and `read_grid`. `read_grid(...; cache = true)` keeps the
+  parsed complete-data scenario in a module-level cache (emptied by
+  `clear_scenario_cache!`), so reading many codes from one scenario parses its CSVs once.
 - `switches.jl`: resolves the busbar/switch/auxiliary-node topology by union-find
   fusion. A `no_sw` code collapses couplers; `sw` keeps them as low-impedance branches.
 - `powermodels.jl`: `powermodels_data`. Follows pandapower's `pd2ppc` conventions:
@@ -73,7 +87,8 @@ CSV files -> SimBenchGrid (DataFrames, SimBench units) -> PowerModels dict (per 
   angles in radians. Solver starting points go in `va_start`/`vm_start` (PowerModels
   ignores `va`/`vm` for that): angles from shift propagation plus a DC power flow,
   magnitudes at load buses from the mean controlled-bus setpoint. Both are load
-  bearing; grids do not converge without them.
+  bearing; grids do not converge without them. Also `attach_coordinates!`, which writes
+  the `Coordinates` table into the `xcoord_1`/`ycoord_1` keys PowerPlots reads.
 - `profiles.jl`: `absolute_profiles` (relative profiles times base powers, MW/MVAr),
   `apply_profile!` and `apply_study_case!` (snapshot a PowerModels dict, matching
   elements through `source_id` and dividing by `baseMVA`). `read_grid` drops unused
